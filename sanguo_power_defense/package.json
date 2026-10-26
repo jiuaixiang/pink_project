@@ -1,0 +1,20 @@
+{
+    "name": "sanguo_power_defense",
+    "type": "3d",
+    "version": "1.0.0",
+    "uuid": "",
+    "creator": {
+        "version": "unknow"
+    },
+    "pink": {
+        "uuid": "9d88a556-3946-4deb-a6be-ddc8583f6576",
+        "version": "1.127.0",
+        "from": "pink"
+    },
+    "cocos": {
+        "version": "4.0.0-beta.0"
+    },
+    "cli": {
+        "version": "0.2.0-beta.0"
+    }
+}
