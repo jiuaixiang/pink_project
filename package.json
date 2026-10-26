@@ -1,11 +1,14 @@
 {
-	"name": "pink_project",
-	"uuid": "",
-	"type": "3d",
-	"version": "1.0.0",
-	"pink": {
-		"uuid": "b988b2fa-9c6c-48e5-853b-fb210b820e78",
-		"version": "1.127.0",
-		"from": "pink"
-	}
+    "name": "pink_project",
+    "type": "3d",
+    "version": "1.0.0",
+    "uuid": "",
+    "creator": {
+        "version": "unknow"
+    },
+    "pink": {
+        "uuid": "b988b2fa-9c6c-48e5-853b-fb210b820e78",
+        "version": "1.127.0",
+        "from": "pink"
+    }
 }
