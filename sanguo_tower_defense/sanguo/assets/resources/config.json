@@ -1,0 +1,77 @@
+{
+  "type": "dev",
+  "config": {
+    "dev": {
+      "version": "1.0.0",
+      "localDataKey": "oops",
+      "localDataIv": "framework",
+      "frameRate": 60,
+      "loadingTimeoutGui": 1000,
+      "mobileSafeArea": true,
+      "stats": true
+    },
+    "test": {
+      "version": "1.0.0",
+      "localDataKey": "oops",
+      "localDataIv": "framework",
+      "frameRate": 60,
+      "loadingTimeoutGui": 1000,
+      "mobileSafeArea": false,
+      "stats": false
+    },
+    "prod": {
+      "version": "1.0.0",
+      "localDataKey": "oops",
+      "localDataIv": "framework",
+      "frameRate": 60,
+      "loadingTimeoutGui": 1000,
+      "mobileSafeArea": false,
+      "stats": false
+    }
+  },
+  "gui": [
+    {
+      "name": "LayerGame",
+      "type": "Game"
+    },
+    {
+      "name": "LayerUI",
+      "type": "UI"
+    },
+    {
+      "name": "LayerPopUp",
+      "type": "PopUp"
+    },
+    {
+      "name": "LayerDialog",
+      "type": "Dialog"
+    },
+    {
+      "name": "LayerSystem",
+      "type": "Dialog"
+    },
+    {
+      "name": "LayerNotify",
+      "type": "Notify"
+    },
+    {
+      "name": "LayerGuide",
+      "type": "Node"
+    }
+  ],
+  "language": {
+    "default": "zh",
+    "type": [
+      "zh",
+      "en"
+    ],
+    "path": {
+      "json": "language/json",
+      "texture": "language/texture",
+      "spine": ""
+    }
+  },
+  "bundle": {
+    "default": "bundle"
+  }
+}

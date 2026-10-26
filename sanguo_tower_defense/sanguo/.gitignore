@@ -1,0 +1,29 @@
+#///////////////////////////
+# Cocos Creator 3D Project
+#///////////////////////////
+oops-plugin-framework/
+oops-plugin-hot-update/
+oops-plugin-protobuf/
+oops_framework_remote/
+ccc-skeleton-viewer-v3/
+library/
+temp/
+local/
+build/
+profiles/
+native/
+node_modules/
+#//////////////////////////
+# NPM
+#//////////////////////////
+# node_modules/
+
+#//////////////////////////
+# VSCode
+#//////////////////////////
+.vscode/
+
+#//////////////////////////
+# WebStorm
+#//////////////////////////
+.idea/

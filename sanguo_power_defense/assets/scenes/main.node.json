@@ -1,0 +1,55 @@
+[
+  {
+    "__type__": "cc.Node",
+    "_name": "MainScene",
+    "_objFlags": 0,
+    "_parent": null,
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 1
+      }
+    ],
+    "_prefab": null,
+    "_lpos": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_lrot": {
+      "__type__": "cc.Quat",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "w": 1
+    },
+    "_lscale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_layer": 33554432,
+    "_euler": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_id": "00000000-0000-0000-0000-000000000001"
+  },
+  {
+    "__type__": "MainScene",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 0
+    },
+    "_enabled": true,
+    "enabled": true,
+    "__prefab": null,
+    "_id": "00000000-0000-0000-0000-000000000002"
+  }
+]

@@ -1,0 +1,22 @@
+{
+    "common_prompt_ok": "ok",
+    "common_prompt_cancal": "cancal",
+    "common_prompt_title": "System Prompt",
+    "common_prompt_content": "System Prompt Cpmtemt",
+    "update_tips_force": "The current version is too old and requires downloading a new installation package to play the game. Do you want to update it?",
+    "update_tips_load_config": "Loading configuration",
+    "update_tips_load_game": "Loading game",
+    "update_tips_check_update": "Checking for updates",
+    "update_tips_new_version": "New version resource discovered",
+    "update_tips_success": "Update completed, click OK to restart the game",
+    "update_tips_update": "Updating:",
+    "update_tips_update_fail": "Update failed",
+    "update_tips_update_fail_click_retry": "Update failed, click retry",
+    "update_tips_update_success": "Update successful",
+    "loading_load_json": "Load game data",
+    "loading_load_game": "Load content",
+    "loading_load_player": "Get user information",
+    "testLabel": "Text content",
+    "testRichText": "RichText<color=#00ff00>%{0}</color><color=#0fffff>%{1}</color>",
+    "vmLabelLanguage": "RichText<color=#00ff00>{{0}}</color>-<color=#0fffff>{{1}}</color>"
+}

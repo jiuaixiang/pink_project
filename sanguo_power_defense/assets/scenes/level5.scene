@@ -1,0 +1,11 @@
+{
+  "__type__": "cc.Scene",
+  "_name": "level5",
+  "_objFlags": 0,
+  "_native": "",
+  "preload": {
+    "__id__": 1
+  },
+  "autoReleaseAssets": false,
+  "_subMetas": {}
+}

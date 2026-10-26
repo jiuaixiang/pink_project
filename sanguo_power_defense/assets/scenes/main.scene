@@ -1,0 +1,11 @@
+{
+  "__type__": "cc.Scene",
+  "_name": "main",
+  "_objFlags": 0,
+  "_native": "",
+  "preload": {
+    "__id__": 0
+  },
+  "autoReleaseAssets": false,
+  "_subMetas": {}
+}

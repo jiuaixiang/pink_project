@@ -1,0 +1,31 @@
+{
+  /* Base configuration. Do not edit this field. */
+  "extends": "./temp/tsconfig.cocos.json",
+  /* Add your custom configuration here. */
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "lib": [
+      "es2015",
+      "es2017",
+      "dom"
+    ],
+    "types": [
+      "mocha"
+    ],
+    "paths": {
+      "db://oops-framework/*": [
+        "./extensions/oops-plugin-framework/assets/*"
+      ]
+    }
+  },
+  "exclude": [
+    "tools/**/*",
+    "extensions/**/typedoc.ts",
+    "extensions/**/src/**/*",
+    "extensions/**/@types/**/*"
+  ]
+}
