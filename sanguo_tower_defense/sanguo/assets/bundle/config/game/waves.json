@@ -1,0 +1,363 @@
+[
+  {
+    "id": "l1_1",
+    "at": 20,
+    "groups": [{ "enemy": "turban", "row": 2, "count": 2, "interval": 5 }]
+  },
+  {
+    "id": "l1_2",
+    "at": 55,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 3, "interval": 4 }]
+  },
+  {
+    "id": "l1_3",
+    "at": 95,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 4, "interval": 3 },
+      { "enemy": "banner", "row": 2, "count": 1, "interval": 0, "delay": 2 }
+    ]
+  },
+  {
+    "id": "l2_1",
+    "at": 20,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 3, "interval": 5 }]
+  },
+  {
+    "id": "l2_2",
+    "at": 55,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 3, "interval": 4 },
+      { "enemy": "banner", "row": -1, "count": 1, "interval": 0, "delay": 3 }
+    ]
+  },
+  {
+    "id": "l2_3",
+    "at": 95,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 3 }]
+  },
+  {
+    "id": "l2_4",
+    "at": 135,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 5, "interval": 2.5 },
+      { "enemy": "banner", "row": -1, "count": 1, "interval": 0, "delay": 1 }
+    ]
+  },
+  {
+    "id": "l3_1",
+    "at": 20,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 4, "interval": 5 }]
+  },
+  {
+    "id": "l3_2",
+    "at": 55,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 4, "interval": 4 },
+      { "enemy": "banner", "row": -1, "count": 1, "interval": 0, "delay": 3 }
+    ]
+  },
+  {
+    "id": "l3_3",
+    "at": 95,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 6, "interval": 3 }]
+  },
+  {
+    "id": "l3_4",
+    "at": 135,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 2.5 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 3 }
+    ]
+  },
+  {
+    "id": "l4_1",
+    "at": 20,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 4, "interval": 4.5 }]
+  },
+  {
+    "id": "l4_2",
+    "at": 50,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 4 }]
+  },
+  {
+    "id": "l4_3",
+    "at": 85,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3 },
+      { "enemy": "banner", "row": -1, "count": 1, "interval": 0, "delay": 5 }
+    ]
+  },
+  {
+    "id": "l4_4",
+    "at": 120,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.4 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 3, "delay": 1 }
+    ]
+  },
+  {
+    "id": "l5_1",
+    "at": 20,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 4 }]
+  },
+  {
+    "id": "l5_2",
+    "at": 50,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 5, "interval": 3.5 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l5_3",
+    "at": 85,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 7, "interval": 3 }]
+  },
+  {
+    "id": "l5_4",
+    "at": 120,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 7, "interval": 2.2 },
+      { "enemy": "banner", "row": -1, "count": 3, "interval": 2.5 }
+    ]
+  },
+  {
+    "id": "l6_1",
+    "at": 20,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 4 }]
+  },
+  {
+    "id": "l6_2",
+    "at": 50,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 5, "interval": 3.5 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l6_3",
+    "at": 85,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3 },
+      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+    ]
+  },
+  {
+    "id": "l6_4",
+    "at": 120,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
+      { "enemy": "iron", "row": -1, "count": 2, "interval": 5 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 3 }
+    ]
+  },
+  {
+    "id": "l7_1",
+    "at": 20,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 4 }]
+  },
+  {
+    "id": "l7_2",
+    "at": 50,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.5 },
+      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+    ]
+  },
+  {
+    "id": "l7_3",
+    "at": 85,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 7, "interval": 3 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l7_4",
+    "at": 120,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
+      { "enemy": "iron", "row": -1, "count": 3, "interval": 4 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 3 }
+    ]
+  },
+  {
+    "id": "l8_1",
+    "at": 20,
+    "groups": [{ "enemy": "turban", "row": -1, "count": 6, "interval": 3.6 }]
+  },
+  {
+    "id": "l8_2",
+    "at": 50,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.4 },
+      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+    ]
+  },
+  {
+    "id": "l8_3",
+    "at": 85,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.8 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l8_4",
+    "at": 120,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
+      { "enemy": "iron", "row": -1, "count": 3, "interval": 4 },
+      { "enemy": "banner", "row": -1, "count": 3, "interval": 3 }
+    ]
+  },
+  {
+    "id": "l9_1",
+    "at": 20,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.4 },
+      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+    ]
+  },
+  {
+    "id": "l9_2",
+    "at": 50,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 4, "interval": 3 },
+      { "enemy": "iron", "row": -1, "count": 4, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l9_3",
+    "at": 85,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3 },
+      { "enemy": "iron", "row": -1, "count": 3, "interval": 5 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l9_4",
+    "at": 120,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
+      { "enemy": "iron", "row": -1, "count": 5, "interval": 3 },
+      { "enemy": "banner", "row": -1, "count": 2, "interval": 3 }
+    ]
+  },
+  {
+    "id": "l10_1",
+    "at": 20,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.4 },
+      { "enemy": "cavalry", "row": -1, "count": 2, "interval": 6 }
+    ]
+  },
+  {
+    "id": "l10_2",
+    "at": 50,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.2 },
+      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+    ]
+  },
+  {
+    "id": "l10_3",
+    "at": 85,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 2.8 },
+      { "enemy": "cavalry", "row": -1, "count": 4, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l10_4",
+    "at": 120,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
+      { "enemy": "iron", "row": -1, "count": 3, "interval": 4 },
+      { "enemy": "cavalry", "row": -1, "count": 4, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l11_1",
+    "at": 20,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.4 },
+      { "enemy": "digger", "row": -1, "count": 2, "interval": 6 }
+    ]
+  },
+  {
+    "id": "l11_2",
+    "at": 50,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.2 },
+      { "enemy": "shield", "row": -1, "count": 4, "interval": 5 }
+    ]
+  },
+  {
+    "id": "l11_3",
+    "at": 85,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 2.8 },
+      { "enemy": "cavalry", "row": -1, "count": 2, "interval": 5 },
+      { "enemy": "digger", "row": -1, "count": 3, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l11_4",
+    "at": 120,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
+      { "enemy": "shield", "row": -1, "count": 4, "interval": 4 },
+      { "enemy": "iron", "row": -1, "count": 2, "interval": 5 }
+    ]
+  },
+  {
+    "id": "l12_1",
+    "at": 20,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.2 },
+      { "enemy": "iron", "row": -1, "count": 2, "interval": 5 }
+    ]
+  },
+  {
+    "id": "l12_2",
+    "at": 50,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 6, "interval": 3 },
+      { "enemy": "shield", "row": -1, "count": 3, "interval": 5 },
+      { "enemy": "cavalry", "row": -1, "count": 2, "interval": 6 }
+    ]
+  },
+  {
+    "id": "l12_3",
+    "at": 85,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.6 },
+      { "enemy": "iron", "row": -1, "count": 4, "interval": 4 },
+      { "enemy": "digger", "row": -1, "count": 3, "interval": 4 }
+    ]
+  },
+  {
+    "id": "l12_4",
+    "at": 130,
+    "big": true,
+    "groups": [
+      { "enemy": "turban", "row": -1, "count": 10, "interval": 2 },
+      { "enemy": "shield", "row": -1, "count": 4, "interval": 3.5 },
+      { "enemy": "cavalry", "row": -1, "count": 2, "interval": 4 },
+      { "enemy": "ram", "row": -1, "count": 1, "interval": 0, "delay": 4 }
+    ]
+  }
+]

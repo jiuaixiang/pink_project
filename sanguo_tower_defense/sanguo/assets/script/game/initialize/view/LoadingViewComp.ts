@@ -35,7 +35,8 @@ export class LoadingViewComp extends CCView<Initialize> {
     }
 
     private async onLoginSuccessGame() {
-        await oops.gui.open(UIID.DemoMain);
+        // 加载完成后进入三国塔防主界面（Demo 保留但不再作为入口）
+        await oops.gui.open(UIID.Main);
         this.remove();
     }
 

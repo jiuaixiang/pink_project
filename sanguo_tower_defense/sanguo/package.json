@@ -1,22 +1,22 @@
 {
-    "name": "oops-framework-project",
-    "type": "module",
-    "version": "3.6.3",
-    "uuid": "00d7d957-a3e8-4ad6-80f4-2fcfb235bca4",
-    "creator": {
-        "version": "3.8.8"
-    },
-    "_sourceId": "c30b28da-749e-479b-bcb6-cecd8d7be9e3",
-    "description": "OopsFramework Game",
-    "devDependencies": {
-        "@eslint/js": "^9.39.1",
-        "@typescript-eslint/eslint-plugin": "^8.49.0",
-        "@typescript-eslint/parser": "^8.49.0",
-        "eslint": "^9.39.1",
-        "eslint-plugin-unused-imports": "^4.3.0"
-    },
-    "pink": {
-        "uuid": "aed43b6f-3e94-4b87-a122-0b0d74130a0c",
-        "version": "1.127.0"
-    }
+  "name": "oops-framework-project",
+  "type": "module",
+  "version": "3.6.3",
+  "uuid": "00d7d957-a3e8-4ad6-80f4-2fcfb235bca4",
+  "creator": {
+    "version": "3.8.8"
+  },
+  "_sourceId": "c30b28da-749e-479b-bcb6-cecd8d7be9e3",
+  "description": "OopsFramework Game",
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "@typescript-eslint/parser": "^8.49.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-unused-imports": "^4.3.0"
+  },
+  "pink": {
+    "uuid": "aed43b6f-3e94-4b87-a122-0b0d74130a0c",
+    "version": "1.127.0"
+  }
 }

@@ -1,4 +1,4 @@
-import { _decorator, Node } from 'cc';
+import { _decorator, Node, ResolutionPolicy, view } from 'cc';
 import { LogType } from 'db://oops-framework/core/common/log/Logger';
 import { oops } from 'db://oops-framework/core/Oops';
 import { Root } from 'db://oops-framework/core/Root';
@@ -25,6 +25,10 @@ export class Main extends Root {
     }
 
     protected initGui() {
+        // 三国塔防按 1280x720 横屏设计。
+        // 使用 SHOW_ALL：任何屏幕比例下保证整块 1280x720 设计区完整可见，
+        // 不足部分留黑边（FIXED_HEIGHT 会在竖屏或 4:3 屏幕上裁掉左右内容）。
+        // view.setDesignResolutionSize(1280, 720, ResolutionPolicy.SHOW_ALL);
         oops.gui.init(UIConfigData);
     }
 

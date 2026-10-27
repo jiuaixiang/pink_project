@@ -1,0 +1,19 @@
+{
+    "engine": {
+        "designResolution": {
+            "fitHeight": true,
+            "fitWidth": false
+        },
+        "physicsConfig": {
+            "collisionMatrix": {
+                "0": 1
+            }
+        },
+        "globalConfigKey": "defaultConfig",
+        "splashScreen": {
+            "autoFit": true
+        }
+    },
+    "version": "1.0.0",
+    "$schema": "../temp/cocos.config.schema.json"
+}

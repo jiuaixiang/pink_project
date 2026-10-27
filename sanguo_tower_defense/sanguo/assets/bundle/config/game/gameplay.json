@@ -1,0 +1,12 @@
+{
+  "rows": 5,
+  "cols": 9,
+  "cellWidth": 96,
+  "cellHeight": 84,
+  "leftWallWidth": 110,
+  "topBarHeight": 96,
+  "bottomBarHeight": 96,
+  "mowerOffset": -0.7,
+  "spawnX": 9.4,
+  "dangerX": -0.05
+}

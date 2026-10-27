@@ -1,7 +1,7 @@
 {
-  "ver": "0.0.0",
-  "importer": "*",
-  "imported": false,
+  "ver": "4.0.24",
+  "importer": "typescript",
+  "imported": true,
   "uuid": "1da821d7-6c16-453d-8485-a90abc636672",
   "files": [],
   "subMetas": {},

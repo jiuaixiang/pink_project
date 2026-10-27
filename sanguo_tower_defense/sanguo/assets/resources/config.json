@@ -7,7 +7,7 @@
       "localDataIv": "framework",
       "frameRate": 60,
       "loadingTimeoutGui": 1000,
-      "mobileSafeArea": true,
+      "mobileSafeArea": false,
       "stats": true
     },
     "test": {
