@@ -659,6 +659,50 @@ class PrefabBuilder {
             }, nodeIndex, node);
         }
 
+        // 多语言：LanguageLabel（运行时按 dataID 覆盖文本，编辑器保留示例文案）
+        if (spec.lang) {
+            this.addComponent({
+                __type__: FRAMEWORK.LanguageLabel,
+                _name: '',
+                _objFlags: 0,
+                __editorExtras__: {},
+                _enabled: true,
+                _dataID: spec.lang,
+                _params: [],
+            }, nodeIndex, node);
+        }
+
+        // MVVM：VMLabel 数据绑定（watchPath 以 * 开头时由 VMParent 替换为实例 tag）
+        if (spec.vm != null) {
+            this.addComponent({
+                __type__: FRAMEWORK.VMLabel,
+                _name: '',
+                _objFlags: 0,
+                __editorExtras__: {},
+                _enabled: true,
+                templateMode: spec.vm.arr != null,
+                watchPath: spec.vm.arr == null ? (spec.vm.path ?? '') : '',
+                labelType: 'cc.Label',
+                watchPathArr: spec.vm.arr ?? [],
+            }, nodeIndex, node);
+        }
+
+        // MVVM：VMState 状态控制（NODE_VISIBLE：满足条件显示，不满足隐藏）
+        if (spec.vmState != null) {
+            this.addComponent({
+                __type__: FRAMEWORK.VMState,
+                _name: '',
+                _objFlags: 0,
+                __editorExtras__: {},
+                _enabled: true,
+                watchPath: spec.vmState.path ?? '',
+                foreachChildMode: false,
+                condition: spec.vmState.condition ?? 0,
+                valueA: spec.vmState.valueA ?? 1,
+                valueAction: spec.vmState.action ?? 1,
+            }, nodeIndex, node);
+        }
+
         // 点击拦截
         if (spec.blockInput) {
             this.addComponent({
@@ -710,6 +754,18 @@ class PrefabBuilder {
                 ...(spec.script.props ?? {}),
             };
             this.addComponent(comp, nodeIndex, node);
+        }
+
+        // 附加业务脚本（同一节点多组件，如 VMParent 数据源）
+        for (const extra of spec.scripts ?? []) {
+            this.addComponent({
+                __type__: compressUuid(extra.uuid),
+                _name: '',
+                _objFlags: 0,
+                __editorExtras__: {},
+                _enabled: true,
+                ...(extra.props ?? {}),
+            }, nodeIndex, node);
         }
 
         // 子节点
@@ -873,11 +929,15 @@ const RAIL_DEFAULTS = {
 };
 
 const label = (name, text, size, color, x, y, opts = {}) => {
-    // opacity 是节点级属性（生成 cc.UIOpacity），必须从 Label 参数里提升出来
-    const { active, ax, ay, opacity, ...labelOpts } = opts;
+    // opacity / lang / vm / vmState 都是节点级属性，必须从 Label 参数里提升出来
+    const { active, ax, ay, opacity, lang, vm, vmState, ...labelOpts } = opts;
     // 空文本填充默认示例：保证编辑器里打开预制体不是空白
     const shown = text !== '' ? text : (LABEL_DEFAULTS[name] ?? '示例文本');
-    return { name, x, y, active: active !== false, ax, ay, opacity, label: { text: shown, size, color, ...labelOpts } };
+    return {
+        name, x, y,
+        active: active !== false, ax, ay, opacity, lang, vm, vmState,
+        label: { text: shown, size, color, ...labelOpts },
+    };
 };
 
 const C = {
@@ -922,7 +982,18 @@ function sliderNode(name, x, y, width) {
 //#endregion
 
 //#region 视图脚本 UUID 表
+/** oops 框架脚本的组件 __type__（压缩 uuid，从扩展 meta 读取，保证与编辑器一致） */
+const FRAMEWORK = (() => {
+    const id = (rel) => compressUuid(JSON.parse(readFileSync(join(ROOT, 'extensions', 'oops-plugin-framework', 'assets', 'libs', rel), 'utf8')).uuid);
+    return {
+        LanguageLabel: id(join('gui', 'language', 'LanguageLabel.ts.meta')),
+        VMLabel: id(join('model-view', 'VMLabel.ts.meta')),
+        VMState: id(join('model-view', 'VMState.ts.meta')),
+    };
+})();
+
 const SCRIPTS = {
+    MainViewModel: { file: 'main/MainViewModel.ts', uuid: uuidFrom('sanguo:script:MainViewModel') },
     MainViewComp: { file: 'main/MainViewComp.ts', uuid: uuidFrom('sanguo:script:MainViewComp') },
     LevelSelectViewComp: { file: 'main/LevelSelectViewComp.ts', uuid: uuidFrom('sanguo:script:LevelSelectViewComp') },
     CodexViewComp: { file: 'main/CodexViewComp.ts', uuid: uuidFrom('sanguo:script:CodexViewComp') },
@@ -958,30 +1029,31 @@ function writeScriptMetas() {
 //#endregion
 
 //#region 屏幕预制体定义
-function rootSpec(name, script, children) {
+function rootSpec(name, script, children, extraScripts = []) {
     return {
         name,
         w: 1280,
         h: 720,
         widget: 'stretch',
         script: { uuid: SCRIPTS[script].uuid },
+        scripts: extraScripts,
         children,
     };
 }
 
 /** 主界面 */
 function mainPrefab() {
-    const card = (name, glyph, title, tip, y) => sprite(name, 'tex_panel_raise', 470, 116, { x: 350, y }, [
+    const card = (name, glyph, title, tip, y, titleKey, tipKey) => sprite(name, 'tex_panel_raise', 470, 116, { x: 350, y }, [
         sprite('chip', 'tex_solid', 76, 76, { x: -180, color: C.bgDeep }),
         label('glyph', glyph, 36, C.gold, -180, 0, { bold: true }),
-        label('title', title, 26, C.text, -122, 16, { bold: true, align: 'left', ax: 0 }),
-        label('tip', tip, 14, C.textMuted, -120, -18, { align: 'left', ax: 0 }),
+        label('title', title, 26, C.text, -122, 16, { bold: true, align: 'left', ax: 0, lang: titleKey }),
+        label('tip', tip, 14, C.textMuted, -120, -18, { align: 'left', ax: 0, lang: tipKey }),
         label('arrow', '›', 34, C.gold, 202, 0),
     ]);
 
-    const stat = (name, x, cap) => [
-        label(name, '0', 32, C.goldSoft, x, -168, { bold: true }),
-        label(`${name}_cap`, cap, 14, C.textMuted, x, -204),
+    const stat = (name, x, cap, capKey, vmPath) => [
+        label(name, '0', 32, C.goldSoft, x, -168, { bold: true, vm: { path: vmPath } }),
+        label(`${name}_cap`, cap, 14, C.textMuted, x, -204, { lang: capKey }),
     ];
 
     return rootSpec('main', 'MainViewComp', [
@@ -991,26 +1063,30 @@ function mainPrefab() {
         sprite('line_top', 'tex_solid', 1280, 2, { y: 348, color: C.gold, alpha: 60 }),
         sprite('line_bottom', 'tex_solid', 1280, 2, { y: -318, color: C.gold, alpha: 40 }),
         sprite('accent_line', 'tex_solid', 3, 210, { x: -604, y: 152, color: C.gold, alpha: 170 }),
-        label('title', '', 72, C.gold, -580, 196, { bold: true, align: 'left', ax: 0 }),
-        label('subtitle', '', 15, C.textMuted, -576, 140, { align: 'left', ax: 0 }),
-        label('chapter', '', 16, C.goldSoft, -576, 104, { align: 'left', ax: 0 }),
+        label('title', '三國志', 72, C.gold, -580, 196, { bold: true, align: 'left', ax: 0, lang: 'app_title' }),
+        label('subtitle', '示例副标题', 15, C.textMuted, -576, 140, { align: 'left', ax: 0, lang: 'app_subtitle' }),
+        label('chapter', '第一章 · 黄巾初起', 16, C.goldSoft, -576, 104, { align: 'left', ax: 0, vm: { path: '*.chapterText' } }),
         sprite('btn_continue', 'tex_btn', 430, 100, { x: -330, y: -20 }, [
-            label('label_main', '', 30, C.text, 0, 16, { bold: true }),
-            label('label_tip', '', 15, C.textDim, 0, -24),
+            label('label_main', '继续征战', 30, C.text, 0, 16, { bold: true, lang: 'main_continue' }),
+            label('label_tip', '第 1 关 · 黄巾初起', 15, C.textDim, 0, -24, { vm: { path: '*.continueTip' } }),
         ]),
-        ...stat('stat_clears', -540, ''),
-        ...stat('stat_stars', -390, ''),
-        ...stat('stat_kills', -240, ''),
-        label('all_clear', '', 15, C.goldSoft, -580, -252, { align: 'left', ax: 0, active: false }),
-        label('best_wave', '', 13, '#8FB8FF', -580, -288, { align: 'left', ax: 0, active: false }),
-        card('card_levels', '关', '开始征战', '选择关卡，守城杀敌', 168),
-        card('card_equip', '装', '装备', '整军经武， 强化武将', 40),
-        card('card_codex', '鉴', '武将图鉴', '检阅诸将与敌兵', -88),
-        card('card_settings', '设', '设置', '音律与存档', -216),
+        ...stat('stat_clears', -540, '通关', 'main_stat_clears', '*.statClears'),
+        ...stat('stat_stars', -390, '星星', 'main_stat_stars', '*.statStars'),
+        ...stat('stat_kills', -240, '杀敌', 'main_stat_kills', '*.statKills'),
+        label('all_clear', '已通关全部关卡', 15, C.goldSoft, -580, -252, {
+            align: 'left', ax: 0, lang: 'main_all_clear', vmState: { path: '*.allClearShow' },
+        }),
+        label('best_wave', '无尽最佳 第 8 波', 13, '#8FB8FF', -580, -288, {
+            align: 'left', ax: 0, vm: { path: '*.bestWaveText' }, vmState: { path: '*.bestWaveShow' },
+        }),
+        card('card_levels', '关', '开始征战', '选择关卡，守城杀敌', 168, 'main_levels', 'main_levels_tip'),
+        card('card_equip', '装', '装备', '整军经武， 强化武将', 40, 'main_equip', 'main_equip_tip'),
+        card('card_codex', '鉴', '武将图鉴', '检阅诸将与敌兵', -88, 'main_codex', 'main_codex_tip'),
+        card('card_settings', '设', '设置', '音律与存档', -216, 'main_settings', 'main_settings_tip'),
         sprite('footer_line', 'tex_solid', 460, 1, { x: 350, y: -292, color: C.textMuted, alpha: 80 }),
-        label('lang', '', 13, C.textMuted, -585, -336, { align: 'left', ax: 0 }),
-        label('version', '', 13, C.textMuted, 585, -336, { align: 'right', ax: 1 }),
-    ]);
+        label('lang', '中文 / EN', 13, C.textMuted, -585, -336, { align: 'left', ax: 0, vm: { path: '*.langText' } }),
+        label('version', 'v1.0.0', 13, C.textMuted, 585, -336, { align: 'right', ax: 1, vm: { path: '*.versionText' } }),
+    ], [{ uuid: SCRIPTS.MainViewModel.uuid }]);
 }
 
 /** 剧情对话（底部对话条，点任意处继续） */

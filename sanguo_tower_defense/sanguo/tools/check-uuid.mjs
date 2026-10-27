@@ -23,6 +23,7 @@ const PAIRS = [
     ['assets/script/game/main/MainViewComp.ts', 'assets/bundle/gui/main/main.prefab'],
     ['assets/script/game/main/LevelSelectViewComp.ts', 'assets/bundle/gui/main/level_select.prefab'],
     ['assets/script/game/main/CodexViewComp.ts', 'assets/bundle/gui/main/codex.prefab'],
+    ['assets/script/game/main/MainViewModel.ts', 'assets/bundle/gui/main/main.prefab'],
     ['assets/script/game/main/EquipViewComp.ts', 'assets/bundle/gui/main/equip.prefab'],
     ['assets/script/game/main/EquipDetailViewComp.ts', 'assets/bundle/gui/main/equip_detail.prefab'],
     ['assets/script/game/main/DraftViewComp.ts', 'assets/bundle/gui/main/draft.prefab'],
