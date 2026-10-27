@@ -757,9 +757,127 @@ const node = (name, opts = {}, children = []) => ({ name, ...opts, children });
 /** 快捷构造：图片节点 */
 const sprite = (name, tex, w, h, opts = {}, children = []) => ({ name, sprite: tex, w, h, ...opts, children });
 /** 快捷构造：文本节点（active / ax / ay 属于节点属性，其余属于 Label 属性） */
+/**
+ * 预制体默认示例文案（编辑器里预览布局用，运行时会被真实数据覆盖）
+ *
+ * 约定：人名用「张三/李四/王五」，数值用真实量级，说明文案以「示例」开头。
+ */
+const LABEL_DEFAULTS = {
+    title: '标题',
+    subtitle: '示例副标题',
+    name: '张三',
+    card_name: '张三',
+    unit_name: '张三',
+    unit_kind: '武将 · 示例定位',
+    head_name: '张三',
+    head_kind: '武将',
+    head_tag: '张',
+    tag: '张',
+    kind: '武将',
+    level_name: '第 1 关 · 示例关卡',
+    speaker: '旁白',
+    text: '这里是示例文本，运行时会替换为实际内容，可以多行换行展示。',
+    tap: '点击继续',
+    goal: '【守城目标】示例：敌军自右侧一波波压向城门，守住城门耐久即获胜（敌将砸墙一次扣 5 点）。',
+    controls: '【操作】示例：点选左侧卡槽后点击战场亮起的格子部署武将；「解雇」可撤回并返还 60% 粮草。',
+    terms: '【术语】粮草=部署资源；连击=2.5 秒内连杀 3 名额外得粮；拒马=每行一次保命清场。',
+    desc: '示例描述：运行时会替换为天赋或装备的完整说明。',
+    talent_name: '奋短兵',
+    talent_desc: '示例天赋说明：运行时替换为该武将天赋的完整描述。',
+    hint: '提示文案',
+    tip: '示例提示：运行时替换为关卡或操作提示',
+    cost: '100',
+    value: '999',
+    count: '3 / 8',
+    time: '00:00',
+    drop: '获得装备：示例宝物',
+    unlock: '通关第 1 关解锁',
+    best_wave: '无尽最佳 第 8 波',
+    all_clear: '已通关全部关卡',
+    bag_count: '背包 12',
+    stats: '攻击 +10% · 生命 +8% · 攻速 +5% · 暴击 +4%',
+    status: '已装备',
+    state: '粮 150',
+    food: '现有粮草 300',
+    line1: '攻击 +10%',
+    line2: '生命 +8%',
+    line3: '攻速 +5%',
+    line4: '暴击 +4%',
+    stat1: '生命 1200',
+    stat2: '攻击 300',
+    stat3: '费用 100 粮',
+    stat4: '冷却 5.0 秒',
+    stat5: '攻击间隔 1.2 秒',
+    meta: '品阶 T4 · 武器',
+    key: '示例属性',
+    mark: '已穿 2',
+    tier: 'T4',
+    mask_text: '冷却中',
+    index: '01',
+    detail_index: '01',
+    detail_name: '示例条目',
+    lock: '未解锁',
+    chapter: '第一章 · 黄巾初起',
+    cond1: '★ 通关该关卡',
+    cond2: '★★ 150 秒内通关',
+    cond3: '★★★ 不用拒马通关',
+    enemies_title: '敌军 ×18',
+    units_title: '我方 ×3',
+    gate_value: '5',
+    wave_text: '第 1 / 3 波',
+    remain_text: '剩余 18',
+    next_wave: '下一波 12s',
+    bond_tag: '羁缘 ×2',
+    stars_total: '★ 12',
+    auto_label: '自动拾取',
+    music_label: '音乐',
+    sfx_label: '音效',
+    lang: '中文',
+    lang_label: '语言',
+    label_main: '音乐',
+    label_tip: '示例：开启后自动拾取战场掉落的军粮',
+    version: 'v1.0.0',
+    label: '按钮',
+};
+
+/** 按钮默认示例文案（key = 按钮节点名） */
+const BTN_DEFAULTS = {
+    btn_action: '装备',
+    btn_all: '全选',
+    btn_back: '返回',
+    btn_clear: '清空',
+    btn_close: '关闭',
+    btn_home: '主页',
+    btn_lang: '语言',
+    btn_next: '继续',
+    btn_quit: '退出',
+    btn_restart: '重开',
+    btn_resume: '恢复',
+    btn_retry: '再来一局',
+    btn_settings: '设置',
+    btn_skip: '跳过',
+    btn_start: '开始',
+    btn_strat: '军师',
+    tab_enemy: '敌军',
+    tab_unit: '武将',
+};
+
+/** 战斗左栏竖排按钮的默认示例 */
+const RAIL_DEFAULTS = {
+    btn_retreat: '解雇',
+    btn_cancel: '取消',
+    btn_pause: '暂停',
+    btn_speed: '×1',
+    btn_mute: '音效',
+    btn_help: '玩法',
+};
+
 const label = (name, text, size, color, x, y, opts = {}) => {
-    const { active, ax, ay, ...labelOpts } = opts;
-    return { name, x, y, active: active !== false, ax, ay, label: { text, size, color, ...labelOpts } };
+    // opacity 是节点级属性（生成 cc.UIOpacity），必须从 Label 参数里提升出来
+    const { active, ax, ay, opacity, ...labelOpts } = opts;
+    // 空文本填充默认示例：保证编辑器里打开预制体不是空白
+    const shown = text !== '' ? text : (LABEL_DEFAULTS[name] ?? '示例文本');
+    return { name, x, y, active: active !== false, ax, ay, opacity, label: { text: shown, size, color, ...labelOpts } };
 };
 
 const C = {
@@ -781,8 +899,9 @@ const C = {
 /** 九宫格按钮 */
 function button(name, text, w, h, x, y, opts = {}) {
     const primary = opts.primary === true;
+    const shown = text !== '' ? text : (BTN_DEFAULTS[name] ?? '按钮');
     return sprite(name, primary ? 'tex_btn_primary' : 'tex_btn', w, h, { x, y }, [
-        label('label', text, opts.size ?? 20, opts.textColor ?? (primary ? C.bgDeep : C.text), 0, 0, { bold: true }),
+        label('label', shown, opts.size ?? 20, opts.textColor ?? (primary ? C.bgDeep : C.text), 0, 0, { bold: true }),
     ]);
 }
 
@@ -884,10 +1003,10 @@ function mainPrefab() {
         ...stat('stat_kills', -240, ''),
         label('all_clear', '', 15, C.goldSoft, -580, -252, { align: 'left', ax: 0, active: false }),
         label('best_wave', '', 13, '#8FB8FF', -580, -288, { align: 'left', ax: 0, active: false }),
-        card('card_levels', '关', '', '', 168),
-        card('card_equip', '装', '', '', 40),
-        card('card_codex', '鉴', '', '', -88),
-        card('card_settings', '设', '', '', -216),
+        card('card_levels', '关', '开始征战', '选择关卡，守城杀敌', 168),
+        card('card_equip', '装', '装备', '整军经武， 强化武将', 40),
+        card('card_codex', '鉴', '武将图鉴', '检阅诸将与敌兵', -88),
+        card('card_settings', '设', '设置', '音律与存档', -216),
         sprite('footer_line', 'tex_solid', 460, 1, { x: 350, y: -292, color: C.textMuted, alpha: 80 }),
         label('lang', '', 13, C.textMuted, -585, -336, { align: 'left', ax: 0 }),
         label('version', '', 13, C.textMuted, 585, -336, { align: 'right', ax: 1 }),
@@ -929,7 +1048,7 @@ function getHeroPrefab() {
         sprite('glow_inner', 'tex_glow', 620, 620, { y: 36, color: '#FFFFFF', opacity: 0 }),
         node('rays', { y: 36, w: 520, h: 520, opacity: 0 }, rays),
         node('star_root', { y: 36, w: 1280, h: 700, opacity: 0 }),
-        sprite('card', 'tex_panel_rail', 210, 300, { y: 36, opacity: 0 }, [
+        sprite('card', 'tex_panel_rail', 210, 300, { y: 36, opacity: 255 }, [
             // 卡下投影（参考稿 bx+3, by+5 的暗影）
             sprite('shadow', 'tex_panel_rail', 210, 300, { x: 4, y: -6, color: '#000000', alpha: 140 }),
             // 纯白 solid 纸底：tex_solid 是 100% 白，染纸色最可靠，任何情况下都不会变黑
@@ -943,8 +1062,8 @@ function getHeroPrefab() {
             // 万一贴图 alpha 被引擎忽略，也只会变成灰色块而不是纯黑
             sprite('portrait', 'portrait_default', 180, 300, { color: '#FFFFFF', opacity: 215 }),
             sprite('chip', 'tex_chip', 150, 150, { color: '#2A241C', active: false }),
-            label('tag', '', 64, '#F4D98A', 0, 0, { bold: true, active: false }),
-            label('card_name', '', 16, '#3B2410', 0, -120, {
+            label('tag', '张', 64, '#F4D98A', 0, 0, { bold: true, active: false }),
+            label('card_name', '张三', 16, '#3B2410', 0, -120, {
                 bold: true, outline: true, outlineColor: '#F2E0BC', outlineWidth: 2,
             }),
             sprite('flash', 'tex_solid', 210, 300, { color: '#FFFFFF', opacity: 0 }),
@@ -955,14 +1074,14 @@ function getHeroPrefab() {
             sprite('c4', 'tex_solid', 20, 14, { color: '#FFE9A8', x: 95, y: -143 }),
             sprite('frame', 'tex_frame_gold', 210, 300),
         ]),
-        label('title', '', 26, '#FFD24A', 0, 246, {
-            bold: true, opacity: 0, outline: true, outlineColor: '#3C1A04', outlineWidth: 4,
+        label('title', '获 得 武 将', 26, '#FFD24A', 0, 246, {
+            bold: true, opacity: 255, outline: true, outlineColor: '#3C1A04', outlineWidth: 4,
         }),
-        label('name', '', 30, '#FFF6DC', 0, -165, {
-            bold: true, opacity: 0, outline: true, outlineColor: '#321404', outlineWidth: 4,
+        label('name', '张三', 30, '#FFF6DC', 0, -165, {
+            bold: true, opacity: 255, outline: true, outlineColor: '#321404', outlineWidth: 4,
         }),
-        label('talent', '', 14, '#FFE2A0', 0, -204, { opacity: 0 }),
-        label('hint', '', 15, '#FFE6A8', 0, -296, { bold: true, opacity: 0 }),
+        label('talent', '天赋 · 奋短兵', 14, '#FFE2A0', 0, -204, { opacity: 255 }),
+        label('hint', '轻 触 继 续', 15, '#FFE6A8', 0, -296, { bold: true, opacity: 255 }),
     ]);
 }
 
@@ -1021,10 +1140,10 @@ function helpPrefab() {
 
 /** 军师计略 */
 function stratPrefab() {
-    const opt = (name, y) => sprite(`opt_${name}`, 'tex_panel_raise', 560, 84, { y }, [
-        label('name', '', 18, C.gold, -250, 18, { bold: true, align: 'left', ax: 0 }),
-        label('desc', '', 13, C.textDim, -250, -16, { align: 'left', ax: 0, wrap: true, width: 380 }),
-        label('state', '', 15, C.goldSoft, 250, 0, { bold: true, align: 'right', ax: 1 }),
+    const opt = (name, y, title, desc, cost) => sprite(`opt_${name}`, 'tex_panel_raise', 560, 84, { y }, [
+        label('name', title, 18, C.gold, -250, 18, { bold: true, align: 'left', ax: 0 }),
+        label('desc', desc, 13, C.textDim, -250, -16, { align: 'left', ax: 0, wrap: true, width: 380 }),
+        label('state', cost, 15, C.goldSoft, 250, 0, { bold: true, align: 'right', ax: 1 }),
     ]);
 
     return rootSpec('strat', 'StratViewComp', [
@@ -1032,9 +1151,9 @@ function stratPrefab() {
         sprite('panel', 'tex_panel', 640, 520, {}, [
             label('title', '', 30, C.gold, 0, 210, { bold: true }),
             label('food', '', 14, C.textMuted, 0, 176),
-            opt('fire', 96),
-            opt('gate', 6),
-            opt('slow', -84),
+            opt('fire', 96, '火计', '全场敌军立即受到 300 点伤害', '粮 150'),
+            opt('gate', 6, '坚守', '城门耐久恢复 2 点', '粮 200'),
+            opt('slow', -84, '缓兵', '全场敌军减速 50%，持续 6 秒', '粮 100'),
             label('hint', '', 12, C.textMuted, 0, -150),
             button('btn_close', '', 240, 52, 0, -208, { primary: true, size: 19 }),
         ]),
@@ -1069,7 +1188,12 @@ function draftPrefab() {
         label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
         label('level_name', '', 20, C.goldSoft, 0, 232),
         label('tip', '', 13, C.textMuted, 0, 196),
-        node('grid', { x: 0, y: 20, w: 1020, h: 300 }),
+        node('grid', { x: 0, y: 20, w: 1020, h: 300 }, [
+            // 示例条目（编辑器预览用，运行时 buildGrid 会先清空再填充）
+            draftItemSpec('sample_1', { tag: '张', name: '张三', cost: '100', chip: '#A0524A' }),
+            draftItemSpec('sample_2', { tag: '李', name: '李四', cost: '150', chip: '#5B8F5B' }),
+            draftItemSpec('sample_3', { tag: '王', name: '王五', cost: '200', chip: '#4E6E9E' }),
+        ]),
         label('count', '', 16, C.goldSoft, 0, -198, { bold: true }),
         button('btn_all', '', 170, 46, -300, -262, { size: 16 }),
         button('btn_clear', '', 170, 46, -110, -262, { size: 16 }),
@@ -1077,25 +1201,29 @@ function draftPrefab() {
     ]);
 }
 
-/** 选将卡片 */
-function draftItemPrefab() {
-    return node('draft_item', { w: 150, h: 112 }, [
-        sprite('bg', 'tex_panel_raise', 150, 112, { color: '#FFFFFF' }),
+/** 选将卡片（sample：编辑器示例数据，运行时覆盖） */
+function draftItemSpec(nodeName = 'draft_item', sample = {}) {
+    return node(nodeName, { w: 150, h: 112 }, [
+        sprite('bg', 'tex_panel_raise', 150, 112, { color: sample.bg ?? '#FFFFFF' }),
         sprite('frame', 'tex_frame_gold', 150, 112, { active: false }),
-        sprite('chip', 'tex_chip', 40, 66, { x: -50, y: 22, color: '#2A241C' }),
+        sprite('chip', 'tex_chip', 40, 66, { x: -50, y: 22, color: sample.chip ?? '#2A241C' }),
         sprite('portrait', 'portrait_default', 36, 60, { x: -50, y: 24, color: '#FFFFFF' }),
-        label('tag', '', 18, C.textMuted, -50, -34, { bold: true }),
-        label('name', '', 16, C.text, 24, 30, { bold: true }),
-        label('cost', '', 14, C.goldSoft, 24, 6),
+        label('tag', sample.tag ?? '', 18, C.textMuted, -50, -34, { bold: true }),
+        label('name', sample.name ?? '', 16, C.text, 24, 30, { bold: true }),
+        label('cost', sample.cost ?? '', 14, C.goldSoft, 24, 6),
         label('check', '✓', 22, '#6AD06A', 56, -34, { active: false }),
     ]);
+}
+
+function draftItemPrefab() {
+    return draftItemSpec();
 }
 
 /** 装备界面 */
 function equipPrefab() {
     const slot = (name, y) => sprite(name, 'tex_panel_raise', 480, 46, { y }, [
         label('name', '', 15, C.text, -220, 0, { align: 'left', ax: 0 }),
-        label('value', '', 13, C.goldSoft, 220, 0, { align: 'right', ax: 1 }),
+        label('value', '未装备', 13, C.goldSoft, 220, 0, { align: 'right', ax: 1 }),
     ]);
 
     return rootSpec('equip', 'EquipViewComp', [
@@ -1104,7 +1232,12 @@ function equipPrefab() {
         button('btn_back', '', 108, 46, -560, 296, { size: 18 }),
         label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
         label('bag_count', '', 14, C.textMuted, 580, 296, { align: 'right', ax: 1 }),
-        node('unit_list', { x: -400, y: -20, w: 380, h: 520 }),
+        node('unit_list', { x: -400, y: -20, w: 380, h: 520 }, [
+            // 示例行（运行时 buildUnits 会先清空再填充）
+            equipRowSpec('sample_u1', { name: '张三', mark: '已穿 2' }),
+            equipRowSpec('sample_u2', { name: '李四', mark: '' }),
+            equipRowSpec('sample_u3', { name: '王五', mark: '已穿 1' }),
+        ]),
         sprite('panel', 'tex_panel', 520, 420, { x: 330, y: 60 }, [
             label('unit_name', '', 24, C.gold, 0, 170, { bold: true }),
             label('unit_kind', '', 13, C.textMuted, 0, 140),
@@ -1115,26 +1248,41 @@ function equipPrefab() {
             label('stats', '', 13, C.textDim, 0, -112, { wrap: true, width: 470 }),
             label('hint', '', 12, C.textMuted, 0, -172),
         ]),
-        node('bag_list', { x: 330, y: -258, w: 540, h: 190 }),
+        node('bag_list', { x: 330, y: -258, w: 540, h: 190 }, [
+            // 示例装备（运行时 buildBag 会先清空再填充）
+            equipItemSpec('sample_b1', { name: '示例装备·壹', tier: 'T1' }),
+            equipItemSpec('sample_b2', { name: '示例装备·贰', tier: 'T2' }),
+            equipItemSpec('sample_b3', { name: '示例装备·叁', tier: 'T3' }),
+            equipItemSpec('sample_b4', { name: '示例装备·肆', tier: 'T4' }),
+            equipItemSpec('sample_b5', { name: '示例装备·伍', tier: 'T5' }),
+        ]),
     ]);
 }
 
 /** 装备界面的武将行 */
-function equipRowPrefab() {
-    return node('equip_row', { w: 180, h: 40 }, [
-        sprite('bg', 'tex_panel', 180, 40, { color: '#FFFFFF' }),
-        label('name', '', 14, C.text, -84, 0, { align: 'left', ax: 0 }),
-        label('mark', '', 11, C.goldSoft, 84, 0, { align: 'right', ax: 1 }),
+function equipRowSpec(nodeName = 'equip_row', sample = {}) {
+    return node(nodeName, { w: 180, h: 40 }, [
+        sprite('bg', 'tex_panel', 180, 40, { color: sample.bg ?? '#FFFFFF' }),
+        label('name', sample.name ?? '', 14, C.text, -84, 0, { align: 'left', ax: 0 }),
+        label('mark', sample.mark ?? '', 11, C.goldSoft, 84, 0, { align: 'right', ax: 1 }),
     ]);
 }
 
+function equipRowPrefab() {
+    return equipRowSpec();
+}
+
 /** 装备界面的装备条目 */
-function equipItemPrefab() {
-    return node('equip_item', { w: 100, h: 42 }, [
+function equipItemSpec(nodeName = 'equip_item', sample = {}) {
+    return node(nodeName, { w: 100, h: 42 }, [
         sprite('bg', 'tex_panel', 100, 42, { color: '#FFFFFF' }),
-        label('name', '', 11, C.text, -44, 0, { align: 'left', ax: 0 }),
-        label('tier', '', 10, C.gold, 44, 0, { align: 'right', ax: 1 }),
+        label('name', sample.name ?? '', 11, C.text, -44, 0, { align: 'left', ax: 0 }),
+        label('tier', sample.tier ?? '', 10, C.gold, 44, 0, { align: 'right', ax: 1 }),
     ]);
+}
+
+function equipItemPrefab() {
+    return equipItemSpec({ name: '示例装备', tier: 'T4' });
 }
 
 /** 关卡选择 */
@@ -1147,7 +1295,13 @@ function levelSelectPrefab() {
         label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
         label('stars_total', '', 22, C.goldSoft, 580, 296, { align: 'right', ax: 1 }),
         sprite('divider', 'tex_solid', 1160, 1, { y: 262, color: C.textMuted, alpha: 70 }),
-        node('grid', { x: -515, y: 184, w: 810, h: 420 }),
+        node('grid', { x: -515, y: 184, w: 810, h: 420 }, [
+            // 示例关卡卡（运行时 buildGrid 会先清空再填充）
+            levelCardSpec('sample_l1', { index: '01', name: '第 1 关' }),
+            levelCardSpec('sample_l2', { index: '02', name: '第 2 关' }),
+            levelCardSpec('sample_l3', { index: '03', name: '第 3 关' }),
+            levelCardSpec('sample_l4', { index: '04', name: '第 4 关' }),
+        ]),
         sprite('detail', 'tex_panel', 380, 452, { x: 370, y: 40 }, [
             label('detail_name', '', 30, C.gold, -160, 186, { bold: true, align: 'left', ax: 0 }),
             label('detail_index', '', 13, C.textMuted, -160, 156, { align: 'left', ax: 0 }),
@@ -1175,14 +1329,24 @@ function codexPrefab() {
         label('tip', '', 14, C.textMuted, 580, 296, { align: 'right', ax: 1 }),
         button('tab_unit', '', 236, 48, -500, 210, { size: 19 }),
         button('tab_enemy', '', 236, 48, -240, 210, { size: 19 }),
-        node('list', { x: -240, y: 20, w: 760, h: 420 }),
+        node('list', { x: -240, y: 20, w: 760, h: 420 }, [
+            // 示例条目（运行时 refreshList 会先清空再填充）
+            codexItemSpec('sample_c1', { tag: '张', name: '张三', kind: '武将', chip: '#A0524A' }),
+            codexItemSpec('sample_c2', { tag: '李', name: '李四', kind: '武将', chip: '#5B8F5B' }),
+            codexItemSpec('sample_c3', { tag: '王', name: '王五', kind: '武将', chip: '#4E6E9E' }),
+        ]),
         sprite('detail', 'tex_panel', 340, 440, { x: 430, y: 20 }, [
             sprite('head_chip', 'tex_chip', 76, 124, { y: 150, color: C.bgRaise }),
             sprite('head_portrait', 'portrait_default', 72, 120, { y: 150, color: '#FFFFFF' }),
             label('head_tag', '', 30, C.goldSoft, 0, 88, { bold: true }),
             label('head_name', '', 26, C.goldSoft, 0, 78, { bold: true }),
             label('head_kind', '', 14, C.textMuted, 0, 52),
-            node('rows', { y: 20, w: 300, h: 180 }),
+            node('rows', { y: 20, w: 300, h: 180 }, [
+                // 示例属性行（运行时先清空再填充）
+                detailRowSpec('sample_r1', { key: '生命', value: '1200' }),
+                detailRowSpec('sample_r2', { key: '攻击', value: '300' }),
+                detailRowSpec('sample_r3', { key: '天赋', value: '奋短兵' }),
+            ]),
             label('desc', '', 14, C.textDim, -140, -132, { align: 'left', ax: 0, ay: 1, wrap: true, width: 280 }),
         ]),
     ]);
@@ -1247,7 +1411,7 @@ function battlePrefab() {
 
     // 参考稿布局：左侧栏（粮草/斩获 → 竖排卡槽 → 操作按钮）+ 右侧（细顶栏 + 战场）
     const railBtn = (name, x, y) => sprite(name, 'tex_btn_gold', 64, 42, { x, y }, [
-        label('label', '', 13, '#3A2408', 0, 0, { bold: true }),
+        label('label', RAIL_DEFAULTS[name] ?? '按钮', 13, '#3A2408', 0, 0, { bold: true }),
     ]);
 
     return rootSpec('battle', 'BattleViewComp', [
@@ -1263,7 +1427,11 @@ function battlePrefab() {
             label('kills_value', '0', 15, '#F4D98A', 68, 0, { bold: true, align: 'left', ax: 0 }),
         ]),
         label('bond_tag', '', 11, '#8FB8FF', -530, 268, { bold: true, active: false }),
-        node('cards', { x: -530, y: 20, w: 200, h: 430 }),
+        node('cards', { x: -530, y: 20, w: 200, h: 430 }, [
+            // 示例卡槽（运行时 buildCards 会先清空再填充）
+            cardSpec('sample_card_1', { tag: '张', name: '张三', cost: '100', chip: '#A0524A' }),
+            cardSpec('sample_card_2', { tag: '李', name: '李四', cost: '150', chip: '#5B8F5B' }),
+        ]),
         railBtn('btn_retreat', -596, -286),
         railBtn('btn_cancel', -530, -286),
         railBtn('btn_pause', -464, -286),
@@ -1363,12 +1531,12 @@ function resultPrefab() {
 //#endregion
 
 //#region 列表项预制体
-function levelCardPrefab() {
-    return node('level_card', { w: 150, h: 112 }, [
-        sprite('bg', 'tex_panel', 150, 112, { color: '#FFFFFF' }),
+function levelCardSpec(nodeName = 'level_card', sample = {}) {
+    return node(nodeName, { w: 150, h: 112 }, [
+        sprite('bg', 'tex_panel', 150, 112, { color: sample.bg ?? '#FFFFFF' }),
         sprite('frame', 'tex_frame_gold', 150, 112, { active: false }),
-        label('index', '', 30, C.gold, -58, 24, { bold: true, align: 'left', ax: 0 }),
-        label('name', '', 16, C.text, -58, -14, { align: 'left', ax: 0 }),
+        label('index', sample.index ?? '', 30, C.gold, -58, 24, { bold: true, align: 'left', ax: 0 }),
+        label('name', sample.name ?? '', 16, C.text, -58, -14, { align: 'left', ax: 0 }),
         label('lock', '', 14, C.textMuted, 60, 24, { align: 'right', ax: 1, active: false }),
         label('star1', '☆', 16, C.textMuted, -40, -42),
         label('star2', '☆', 16, C.textMuted, -16, -42),
@@ -1376,17 +1544,25 @@ function levelCardPrefab() {
     ]);
 }
 
-function codexItemPrefab() {
+function levelCardPrefab() {
+    return levelCardSpec();
+}
+
+function codexItemSpec(nodeName = 'codex_item', sample = {}) {
     // 23 名武将需要 4 列 × 6 行展示，条目相应收窄
-    return node('codex_item', { w: 180, h: 56 }, [
+    return node(nodeName, { w: 180, h: 56 }, [
         sprite('bg', 'tex_panel', 180, 56, { color: '#FFFFFF' }),
         sprite('frame', 'tex_frame_gold', 180, 56, { active: false }),
-        sprite('chip', 'tex_chip', 28, 46, { x: -72, color: '#2A241C' }),
+        sprite('chip', 'tex_chip', 28, 46, { x: -72, color: sample.chip ?? '#2A241C' }),
         sprite('portrait', 'portrait_default', 24, 40, { x: -72, color: '#FFFFFF' }),
-        label('tag', '', 14, C.textMuted, -72, -25, { bold: true }),
-        label('name', '', 14, C.text, -44, 8, { align: 'left', ax: 0 }),
-        label('kind', '', 11, C.textMuted, -44, -10, { align: 'left', ax: 0 }),
+        label('tag', sample.tag ?? '', 14, C.textMuted, -72, -25, { bold: true }),
+        label('name', sample.name ?? '', 14, C.text, -44, 8, { align: 'left', ax: 0 }),
+        label('kind', sample.kind ?? '', 11, C.textMuted, -44, -10, { align: 'left', ax: 0 }),
     ]);
+}
+
+function codexItemPrefab() {
+    return codexItemSpec();
 }
 
 /** 通用兵种小标（敌军预览、我方缩略） */
@@ -1397,27 +1573,35 @@ function chipPrefab() {
     ]);
 }
 
-function detailRowPrefab() {
-    return node('detail_row', { w: 280, h: 28 }, [
-        label('key', '', 16, C.textDim, -140, 0, { align: 'left', ax: 0 }),
-        label('value', '', 16, C.text, 140, 0, { align: 'right', ax: 1 }),
+function detailRowSpec(nodeName = 'detail_row', sample = {}) {
+    return node(nodeName, { w: 280, h: 28 }, [
+        label('key', sample.key ?? '', 16, C.textDim, -140, 0, { align: 'left', ax: 0 }),
+        label('value', sample.value ?? '', 16, C.text, 140, 0, { align: 'right', ax: 1 }),
     ]);
 }
 
+function detailRowPrefab() {
+    return detailRowSpec();
+}
+
 /** 左栏竖排卡槽卡：横向「种子包」样式（画像 + 名号 + 费用 + 冷却遮罩） */
-function cardPrefab() {
-    return node('card', { w: 96, h: 68 }, [
+function cardSpec(nodeName = 'card', sample = {}) {
+    return node(nodeName, { w: 96, h: 68 }, [
         sprite('bg', 'tex_panel', 96, 68, { color: '#FFFFFF' }),
         sprite('frame', 'tex_frame_gold', 96, 68, { active: false }),
         // 先垫阵营色块，再叠近黑剪影
-        sprite('chip', 'tex_chip', 34, 56, { x: -27, y: 10, color: '#E0B64A' }),
+        sprite('chip', 'tex_chip', 34, 56, { x: -27, y: 10, color: sample.chip ?? '#E0B64A' }),
         sprite('portrait', 'portrait_default', 30, 50, { x: -27, y: 10, color: '#FFFFFF' }),
-        label('tag', '', 15, '#F4D98A', -27, -17, { bold: true }),
-        label('name', '', 12, C.text, 10, 12),
-        label('cost', '', 12, C.goldSoft, 10, -12, { bold: true }),
+        label('tag', sample.tag ?? '', 15, '#F4D98A', -27, -17, { bold: true }),
+        label('name', sample.name ?? '', 12, C.text, 10, 12),
+        label('cost', sample.cost ?? '', 12, C.goldSoft, 10, -12, { bold: true }),
         sprite('mask', 'tex_solid', 96, 68, { color: '#000000', alpha: 170, ay: 1, y: 34 }),
         label('mask_text', '', 12, C.textDim, 0, 0, { active: false }),
     ]);
+}
+
+function cardPrefab() {
+    return cardSpec();
 }
 //#endregion
 

@@ -540,7 +540,7 @@
       "b": 90,
       "a": 255
     },
-    "_string": "",
+    "_string": "标题",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 32,
@@ -698,7 +698,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "【守城目标】示例：敌军自右侧一波波压向城门，守住城门耐久即获胜（敌将砸墙一次扣 5 点）。",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -856,7 +856,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "【操作】示例：点选左侧卡槽后点击战场亮起的格子部署武将；「解雇」可撤回并返还 60% 粮草。",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1014,7 +1014,7 @@
       "b": 142,
       "a": 255
     },
-    "_string": "",
+    "_string": "【术语】粮草=部署资源；连击=2.5 秒内连杀 3 名额外得粮；拒马=每行一次保命清场。",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1299,7 +1299,7 @@
       "b": 13,
       "a": 255
     },
-    "_string": "",
+    "_string": "关闭",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,

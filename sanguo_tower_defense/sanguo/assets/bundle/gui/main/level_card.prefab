@@ -473,7 +473,7 @@
       "b": 90,
       "a": 255
     },
-    "_string": "",
+    "_string": "01",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 30,
@@ -631,7 +631,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "张三",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 16,
@@ -789,7 +789,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "未解锁",
     "_horizontalAlign": 2,
     "_verticalAlign": 1,
     "_actualFontSize": 14,

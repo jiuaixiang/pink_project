@@ -740,7 +740,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "张",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -898,7 +898,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "张三",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -1056,7 +1056,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "武将",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 11,

@@ -185,7 +185,7 @@
       "b": 142,
       "a": 255
     },
-    "_string": "",
+    "_string": "示例属性",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 16,
@@ -343,7 +343,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "999",
     "_horizontalAlign": 2,
     "_verticalAlign": 1,
     "_actualFontSize": 16,

@@ -746,7 +746,7 @@
       "b": 138,
       "a": 255
     },
-    "_string": "",
+    "_string": "张",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -904,7 +904,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "张三",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 12,
@@ -1062,7 +1062,7 @@
       "b": 140,
       "a": 255
     },
-    "_string": "",
+    "_string": "100",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 12,
@@ -1355,7 +1355,7 @@
       "b": 142,
       "a": 255
     },
-    "_string": "",
+    "_string": "冷却中",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 12,

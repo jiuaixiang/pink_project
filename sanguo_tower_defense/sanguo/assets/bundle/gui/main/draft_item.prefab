@@ -743,7 +743,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "张",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 18,
@@ -901,7 +901,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "张三",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 16,
@@ -1059,7 +1059,7 @@
       "b": 140,
       "a": 255
     },
-    "_string": "",
+    "_string": "100",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 14,

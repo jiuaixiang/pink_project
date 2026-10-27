@@ -531,7 +531,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "跳过",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 16,
@@ -855,7 +855,7 @@
       "b": 90,
       "a": 255
     },
-    "_string": "",
+    "_string": "旁白",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -1013,7 +1013,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "这里是示例文本，运行时会替换为实际内容，可以多行换行展示。",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 16,
@@ -1171,7 +1171,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "点击继续",
     "_horizontalAlign": 2,
     "_verticalAlign": 1,
     "_actualFontSize": 12,

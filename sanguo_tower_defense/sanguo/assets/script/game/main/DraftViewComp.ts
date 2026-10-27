@@ -73,6 +73,12 @@ export class DraftViewComp extends GameComponent {
         const layer = ViewKit.get(this.node, 'grid');
         if (layer == null) return;
 
+        // 预制体里带示例条目（编辑器预览用），填充前先清空
+        layer.children.slice().forEach((child) => {
+            child.removeFromParent();
+            child.destroy();
+        });
+
         for (let i = 0; i < this.pool.length; i++) {
             const unitId = this.pool[i];
             const cfg = TableUnits.get(unitId);

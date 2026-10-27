@@ -555,7 +555,7 @@
       "b": 90,
       "a": 255
     },
-    "_string": "",
+    "_string": "张三",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 28,
@@ -713,7 +713,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "武将",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -871,7 +871,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "生命 1200",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1029,7 +1029,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "攻击 300",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1187,7 +1187,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "费用 100 粮",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1345,7 +1345,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "冷却 5.0 秒",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1503,7 +1503,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "攻击间隔 1.2 秒",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1661,7 +1661,7 @@
       "b": 140,
       "a": 255
     },
-    "_string": "",
+    "_string": "奋短兵",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 17,
@@ -1819,7 +1819,7 @@
       "b": 142,
       "a": 255
     },
-    "_string": "",
+    "_string": "示例天赋说明：运行时替换为该武将天赋的完整描述。",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 13,
@@ -2104,7 +2104,7 @@
       "b": 13,
       "a": 255
     },
-    "_string": "",
+    "_string": "关闭",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 19,

@@ -558,7 +558,7 @@
       "b": 90,
       "a": 255
     },
-    "_string": "",
+    "_string": "标题",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 40,
@@ -716,7 +716,7 @@
       "b": 142,
       "a": 255
     },
-    "_string": "",
+    "_string": "第 1 关 · 示例关卡",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -1348,7 +1348,7 @@
       "b": 142,
       "a": 255
     },
-    "_string": "",
+    "_string": "00:00",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 16,
@@ -1506,7 +1506,7 @@
       "b": 140,
       "a": 255
     },
-    "_string": "",
+    "_string": "通关第 1 关解锁",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 16,
@@ -1664,7 +1664,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "",
+    "_string": "获得装备：示例宝物",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1949,7 +1949,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "再来一局",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 19,
@@ -2246,7 +2246,7 @@
       "b": 13,
       "a": 255
     },
-    "_string": "",
+    "_string": "继续",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 19,
@@ -2543,7 +2543,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "主页",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 18,

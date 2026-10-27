@@ -555,7 +555,7 @@
       "b": 90,
       "a": 255
     },
-    "_string": "",
+    "_string": "张三",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 26,
@@ -713,7 +713,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "品阶 T4 · 武器",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -871,7 +871,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "攻击 +10%",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1029,7 +1029,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "生命 +8%",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1187,7 +1187,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "攻速 +5%",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1345,7 +1345,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "暴击 +4%",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1503,7 +1503,7 @@
       "b": 142,
       "a": 255
     },
-    "_string": "",
+    "_string": "示例描述：运行时会替换为天赋或装备的完整说明。",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 13,
@@ -1661,7 +1661,7 @@
       "b": 140,
       "a": 255
     },
-    "_string": "",
+    "_string": "已装备",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 13,
@@ -1946,7 +1946,7 @@
       "b": 13,
       "a": 255
     },
-    "_string": "",
+    "_string": "装备",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 18,
@@ -2243,7 +2243,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "关闭",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 17,

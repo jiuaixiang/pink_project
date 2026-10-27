@@ -1124,7 +1124,7 @@
       "b": 90,
       "a": 255
     },
-    "_string": "",
+    "_string": "标题",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 72,
@@ -1282,7 +1282,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "示例副标题",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -1440,7 +1440,7 @@
       "b": 140,
       "a": 255
     },
-    "_string": "",
+    "_string": "第一章 · 黄巾初起",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 16,
@@ -1728,7 +1728,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "音乐",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 30,
@@ -1886,7 +1886,7 @@
       "b": 142,
       "a": 255
     },
-    "_string": "",
+    "_string": "示例：开启后自动拾取战场掉落的军粮",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -2214,7 +2214,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "示例文本",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -2530,7 +2530,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "示例文本",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -2846,7 +2846,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "示例文本",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -3004,7 +3004,7 @@
       "b": 140,
       "a": 255
     },
-    "_string": "",
+    "_string": "已通关全部关卡",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 15,
@@ -3162,7 +3162,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "",
+    "_string": "无尽最佳 第 8 波",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 13,
@@ -3752,7 +3752,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "开始征战",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 26,
@@ -3910,7 +3910,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "选择关卡，守城杀敌",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -4670,7 +4670,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "装备",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 26,
@@ -4828,7 +4828,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "整军经武， 强化武将",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -5588,7 +5588,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "武将图鉴",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 26,
@@ -5746,7 +5746,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "检阅诸将与敌兵",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -6506,7 +6506,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "设置",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 26,
@@ -6664,7 +6664,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "音律与存档",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -7127,7 +7127,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "中文",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 13,
@@ -7285,7 +7285,7 @@
       "b": 85,
       "a": 255
     },
-    "_string": "",
+    "_string": "v1.0.0",
     "_horizontalAlign": 2,
     "_verticalAlign": 1,
     "_actualFontSize": 13,

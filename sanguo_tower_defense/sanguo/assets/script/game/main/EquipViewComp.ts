@@ -83,6 +83,12 @@ export class EquipViewComp extends GameComponent {
         const layer = ViewKit.get(this.node, 'unit_list');
         if (layer == null) return;
 
+        // 预制体里带示例行（编辑器预览用），填充前先清空
+        layer.children.slice().forEach((child) => {
+            child.removeFromParent();
+            child.destroy();
+        });
+
         const ids = TableUnits.all().map((cfg) => cfg.id);
         for (let i = 0; i < ids.length && i < 24; i++) {
             const node = await ViewKit.instantiatePrefab('gui/main/equip_row', layer);

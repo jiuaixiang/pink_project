@@ -294,23 +294,20 @@ export class GetHeroViewComp extends GameComponent {
         }
 
         // ⑥ 文字：获得武将 / 名号 / 天赋
-        if (pTxt > 0) {
-            const ea = easeOutCubic(pTxt);
-            const dy = (1 - ea) * 12;
-            this.setOpacity('title', ea * 255);
-            this.setOpacity('name', ea * 255);
-            this.setOpacity('talent', ea * 255);
-            if (this.titleNode != null) this.titleNode.setPosition(new Vec3(0, 246 - dy, 0));
-            if (this.nameNode != null) this.nameNode.setPosition(new Vec3(0, -165 - dy, 0));
-            if (this.talentNode != null) this.talentNode.setPosition(new Vec3(0, -204 - dy, 0));
-        }
+        // 预制体带示例文本（编辑器可见），运行时在各自时间轴前强制透明
+        const ea = easeOutCubic(pTxt);
+        const dy = (1 - ea) * 12;
+        this.setOpacity('title', ea * 255);
+        this.setOpacity('name', ea * 255);
+        this.setOpacity('talent', ea * 255);
+        if (this.titleNode != null) this.titleNode.setPosition(new Vec3(0, 246 - dy, 0));
+        if (this.nameNode != null) this.nameNode.setPosition(new Vec3(0, -165 - dy, 0));
+        if (this.talentNode != null) this.talentNode.setPosition(new Vec3(0, -204 - dy, 0));
 
         // ⑦ 轻触继续（呼吸）
-        if (t > 1.4) {
-            const pulse = 0.3 + 0.7 * Math.abs(Math.sin(t * 1.6));
-            this.setOpacity('hint', pulse * 255);
-            if (this.hintNode != null) this.hintNode.setPosition(new Vec3(0, -296, 0));
-        }
+        const pulse = 0.3 + 0.7 * Math.abs(Math.sin(t * 1.6));
+        this.setOpacity('hint', t > 1.4 ? pulse * 255 : 0);
+        if (this.hintNode != null) this.hintNode.setPosition(new Vec3(0, -296, 0));
 
         if (!this.canClose && t > 0.4) this.canClose = true;
     }

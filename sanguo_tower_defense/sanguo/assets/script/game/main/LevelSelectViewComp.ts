@@ -70,6 +70,12 @@ export class LevelSelectViewComp extends GameComponent {
         const grid = this.grid;
         if (grid == null) return;
 
+        // 预制体里带示例关卡卡（编辑器预览用），填充前先清空
+        grid.children.slice().forEach((child) => {
+            child.removeFromParent();
+            child.destroy();
+        });
+
         const levels = TableLevels.getSorted();
         for (let i = 0; i < levels.length; i++) {
             const level = levels[i];

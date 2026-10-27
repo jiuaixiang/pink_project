@@ -323,7 +323,7 @@
       "b": 208,
       "a": 255
     },
-    "_string": "",
+    "_string": "张三",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 14,
@@ -481,7 +481,7 @@
       "b": 140,
       "a": 255
     },
-    "_string": "",
+    "_string": "已穿 2",
     "_horizontalAlign": 2,
     "_verticalAlign": 1,
     "_actualFontSize": 11,
