@@ -1,9 +1,12 @@
 import type { Node } from 'cc';
 import { oops } from 'db://oops-framework/core/Oops';
 import { BattlePrefab } from '../common/config/GameUIConfig';
+import { DraftModel } from '../common/model/DraftModel';
 import { PlayerModel } from '../common/model/PlayerModel';
 import { SettingsModel } from '../common/model/SettingsModel';
 import type { ILevelConfig } from '../common/table/ITable';
+import { TableEquips } from '../common/table/TableEquips';
+import { TableGameplay } from '../common/table/TableGameplay';
 import { TableLevels } from '../common/table/TableLevels';
 import { BattleJudge } from './logic/BattleJudge';
 import { BattleModel } from './logic/BattleModel';
@@ -25,6 +28,10 @@ export interface IBattleSummary {
     kills: number;
     /** 本局新解锁的关卡（0 表示没有新解锁） */
     unlocked: number;
+    /** 无尽模式到达波数（非无尽关卡为空） */
+    wave?: number;
+    /** 本局掉落装备 id */
+    equip?: string;
 }
 
 /** 固定步长（秒） */
@@ -80,6 +87,16 @@ export class Battle {
     private summaryTaken = false;
 
     /** 是否结算完成 */
+    /** 当前战斗实例（弹层读取模型用） */
+    static get current(): Battle | null {
+        return this.inst;
+    }
+
+    /** 当前战斗模型（军师计略等外部系统读取） */
+    get battleModel(): BattleModel | null {
+        return this.model;
+    }
+
     get isOver(): boolean {
         return this.model != null && this.model.over;
     }
@@ -104,7 +121,7 @@ export class Battle {
             return;
         }
         this.level = level;
-        const model = new BattleModel(level);
+        const model = new BattleModel(level, DraftModel.getDeck(level.id) ?? undefined);
         // 沿用设置中的默认倍速
         model.speed = SettingsModel.inst.speed >= 2 ? 2 : 1;
         this.model = model;
@@ -206,15 +223,36 @@ export class Battle {
         const level = this.level;
         if (model == null || level == null || this.summary != null) return;
 
-        const beforeUnlock = PlayerModel.inst.unlocked;
-        PlayerModel.inst.recordBattle({
-            levelId: level.id,
-            win: model.win,
-            stars: model.stars,
-            time: model.time,
-            kills: model.kills,
-        });
-        const afterUnlock = PlayerModel.inst.unlocked;
+        const endless = level.endless === true;
+        let unlocked = 0;
+
+        if (endless) {
+            PlayerModel.inst.recordEndless(model.endlessWave);
+        }
+        else {
+            const beforeUnlock = PlayerModel.inst.unlocked;
+            PlayerModel.inst.recordBattle({
+                levelId: level.id,
+                win: model.win,
+                stars: model.stars,
+                time: model.time,
+                kills: model.kills,
+            });
+            const afterUnlock = PlayerModel.inst.unlocked;
+            unlocked = afterUnlock > beforeUnlock ? afterUnlock : 0;
+        }
+
+        // 通关掉落装备
+        let equipId: string | undefined;
+        if (model.win && !endless) {
+            const rate = TableGameplay.get().equipDropRate ?? 0;
+            const pool = TableEquips.all();
+            if (pool.length > 0 && Math.random() < rate) {
+                const pick = pool[Math.floor(Math.random() * pool.length)];
+                PlayerModel.inst.addEquip(pick.id);
+                equipId = pick.id;
+            }
+        }
 
         this.summary = {
             levelId: level.id,
@@ -222,7 +260,9 @@ export class Battle {
             stars: model.stars,
             time: model.time,
             kills: model.kills,
-            unlocked: afterUnlock > beforeUnlock ? afterUnlock : 0,
+            unlocked,
+            wave: endless ? model.endlessWave : undefined,
+            equip: equipId,
         };
         model.paused = true;
     }

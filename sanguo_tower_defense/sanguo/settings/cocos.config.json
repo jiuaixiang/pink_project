@@ -15,5 +15,12 @@
         }
     },
     "version": "1.0.0",
-    "$schema": "../temp/cocos.config.schema.json"
+    "$schema": "../temp/cocos.config.schema.json",
+    "builder": {
+        "useCacheConfig": {
+            "autoAtlas": true,
+            "textureCompress": true,
+            "engine": true
+        }
+    }
 }

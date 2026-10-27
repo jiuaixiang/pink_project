@@ -1,0 +1,10 @@
+[
+  { "id": "camp_shu", "nameKey": "bond_camp_shu", "members": ["zhangfei", "zhugeliang", "mengdai"], "effect": { "atk": 0.1, "hp": 0.1 } },
+  { "id": "camp_wei", "nameKey": "bond_camp_wei", "members": ["caocao", "simayi", "zhangliao"], "effect": { "atk": 0.1, "aspd": 0.1 } },
+  { "id": "camp_wu", "nameKey": "bond_camp_wu", "members": ["sunshangxiang", "taishici", "lusu"], "effect": { "aspd": 0.15, "hp": 0.1 } },
+  { "id": "camp_qun", "nameKey": "bond_camp_qun", "members": ["wutugu", "dongzhuo", "juma"], "effect": { "hp": 0.2 } },
+  { "id": "pair_frost", "nameKey": "bond_pair_frost", "members": ["xiaoqiao", "zhugeliang"], "effect": { "aspd": 0.1, "atk": 0.05 } },
+  { "id": "pair_sworn", "nameKey": "bond_pair_sworn", "members": ["zhangfei", "dingfeng"], "effect": { "atk": 0.12 } },
+  { "id": "pair_strategy", "nameKey": "bond_pair_strategy", "members": ["simayi", "jiangwei"], "effect": { "atk": 0.08, "aspd": 0.08 } },
+  { "id": "pair_supply", "nameKey": "bond_pair_supply", "members": ["lusu", "xunyu"], "effect": { "hp": 0.15 } }
+]

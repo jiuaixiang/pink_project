@@ -15,6 +15,8 @@ export class ProjectileSystem {
         damage: number,
         slow: number,
         slowDuration: number,
+        pierce = false,
+        crit = false,
     ): void {
         const cfg = this.getConfig(projectileId);
         const inst: IProjectileInst = {
@@ -29,6 +31,9 @@ export class ProjectileSystem {
             damage,
             slow,
             slowDuration,
+            pierce,
+            hitUids: [],
+            crit,
             alive: true,
         };
         model.projectiles.push(inst);
@@ -56,6 +61,9 @@ export class ProjectileSystem {
             damage,
             slow: 0,
             slowDuration: 0,
+            pierce: false,
+            hitUids: [],
+            crit: false,
             alive: true,
         };
         model.projectiles.push(inst);
@@ -81,13 +89,20 @@ export class ProjectileSystem {
             p.x += p.cfg.speed * dt;
             const hit = this.findHit(model, p);
             if (hit != null) {
-                Combat.damageEnemy(model, hit, p.damage, p.cfg.color);
+                Combat.damageEnemy(model, hit, p.damage, p.crit ? '#FF7A5A' : p.cfg.color);
                 if (p.slow > 0) {
                     hit.slowRemain = Math.max(hit.slowRemain, p.slowDuration);
                     hit.slowFactor = Math.max(0.15, 1 - p.slow);
                 }
-                p.alive = false;
-                continue;
+
+                if (p.pierce) {
+                    // 贯穿弹：记录已命中目标后继续前飞（马岱回旋镖）
+                    p.hitUids.push(hit.uid);
+                }
+                else {
+                    p.alive = false;
+                    continue;
+                }
             }
             if (p.x > model.gameplay.spawnX + 1) p.alive = false;
         }
@@ -98,6 +113,7 @@ export class ProjectileSystem {
         let hit: IEnemyInst | null = null;
         for (const enemy of model.enemies) {
             if (!enemy.alive || enemy.row !== p.row) continue;
+            if (p.hitUids.indexOf(enemy.uid) >= 0) continue;
             if (Math.abs(enemy.x - p.x) > 0.34) continue;
             if (hit == null || enemy.x < hit.x) hit = enemy;
         }

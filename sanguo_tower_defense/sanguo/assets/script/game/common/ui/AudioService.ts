@@ -21,7 +21,8 @@ export const AudioPath = {
  * 音频服务
  *
  * 设计要点：
- * 1、当前工程 audios 目录资源缺失，直接调用 oops.audio 会反复加载报错，因此播放前做可用性探测
+ * 1、audios 目录已内置占位 WAV（tools/audio-gen.mjs 生成），替换正式素材时保持同名即可；
+ *    播放前仍做可用性探测，资源缺失时静默降级，不阻塞流程
  * 2、音量与开关直接读存档，避免与 SettingsModel 互相 import 形成循环依赖
  *    （循环依赖会导致预览构建里模块注入失败，表现为 import 到的函数为 undefined）
  */

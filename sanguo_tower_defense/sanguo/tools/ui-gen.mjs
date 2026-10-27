@@ -10,10 +10,10 @@
  * 说明：生成后的预制体即为唯一 UI 来源，运行时代码只允许读取节点并刷新数值/文本。
  */
 import { createHash } from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { deflateSync } from 'node:zlib';
+import { deflateSync, inflateSync } from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BUNDLE = join(ROOT, 'assets', 'bundle');
@@ -145,18 +145,17 @@ function paintRounded(w, h, radius, fill, border, borderWidth) {
             const i = (y * w + x) * 4;
             let r = 0, g = 0, b = 0, a = 0;
             if (fillColor && inner > 0) {
-                r = fillColor[0]; g = fillColor[1]; b = fillColor[2]; a = fillColor[3];
+                r = fillColor[0]; g = fillColor[1]; b = fillColor[2];
+                a = fillColor[3] * inner;
             }
             if (borderColor && outer > inner) {
                 const t = (outer - inner) / Math.max(0.001, outer);
                 r = r * (1 - t) + borderColor[0] * t;
                 g = g * (1 - t) + borderColor[1] * t;
                 b = b * (1 - t) + borderColor[2] * t;
-                a = Math.max(a, 255 * outer);
+                a = Math.max(a, borderColor[3] * outer);
             }
-            else {
-                a = 255 * outer;
-            }
+            // 只描边（fill=null）时内部必须保持全透明，否则会变成一块实心黑
             buf[i] = Math.round(r);
             buf[i + 1] = Math.round(g);
             buf[i + 2] = Math.round(b);
@@ -215,9 +214,180 @@ function paintSolid(w, h) {
     return buf;
 }
 
+/** 径向渐变（RGBA）：内芯 → 中层 → 透明，用于金色光晕 */
+function paintRadial(w, h, inner, mid, midStop = 0.4) {
+    const buf = Buffer.alloc(w * h * 4);
+    const cx = w / 2;
+    const cy = h / 2;
+    const R = Math.min(w, h) / 2;
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy) / R;
+            let r = 0, g = 0, b = 0, a = 0;
+            if (d <= midStop) {
+                const t = d / midStop;
+                r = inner[0] + (mid[0] - inner[0]) * t;
+                g = inner[1] + (mid[1] - inner[1]) * t;
+                b = inner[2] + (mid[2] - inner[2]) * t;
+                a = inner[3] + (mid[3] - inner[3]) * t;
+            }
+            else if (d < 1) {
+                const t = (d - midStop) / (1 - midStop);
+                const k = Math.pow(1 - t, 1.4);
+                r = mid[0];
+                g = mid[1];
+                b = mid[2];
+                a = mid[3] * k;
+            }
+            const i = (y * w + x) * 4;
+            buf[i] = Math.round(r);
+            buf[i + 1] = Math.round(g);
+            buf[i + 2] = Math.round(b);
+            buf[i + 3] = Math.round(Math.max(0, Math.min(255, a)));
+        }
+    }
+    return buf;
+}
+
+/** 光芒：竖向长条，中线最亮、两端渐隐，横向柔和边缘 */
+function paintRay(w, h) {
+    const buf = Buffer.alloc(w * h * 4);
+    const cx = w / 2;
+    for (let y = 0; y < h; y++) {
+        const vy = Math.abs((y + 0.5) / h - 0.5) * 2;      // 0 中心 → 1 两端
+        const av = Math.pow(1 - vy, 1.35);
+        for (let x = 0; x < w; x++) {
+            const hx = Math.abs((x + 0.5) / w - 0.5) * 2;
+            const ah = Math.pow(1 - hx, 1.8);
+            const i = (y * w + x) * 4;
+            buf[i] = 255;
+            buf[i + 1] = 216;
+            buf[i + 2] = 124;
+            buf[i + 3] = Math.round(255 * av * ah);
+        }
+    }
+    return buf;
+}
+
+/** 柔边点（星屑） */
+function paintStar(size) {
+    const buf = paintRadial(size, size, [255, 244, 190, 255], [255, 226, 150, 120], 0.28);
+    return buf;
+}
+
+/** 扫光带：横向高斯亮带 + 纵向柔和 */
+function paintSheen(w, h) {
+    const buf = Buffer.alloc(w * h * 4);
+    for (let y = 0; y < h; y++) {
+        const vy = Math.abs((y + 0.5) / h - 0.5) * 2;
+        const av = Math.pow(1 - vy, 0.85);
+        for (let x = 0; x < w; x++) {
+            const hx = Math.abs((x + 0.5) / w - 0.5) * 2;
+            const ah = Math.pow(1 - hx, 2.2);
+            const i = (y * w + x) * 4;
+            buf[i] = 255;
+            buf[i + 1] = 255;
+            buf[i + 2] = 255;
+            buf[i + 3] = Math.round(255 * av * ah);
+        }
+    }
+    return buf;
+}
+
+/** 解析 PNG 为 RGBA 像素（支持 8bit 的 6/2/0 类型、非隔行） */
+function readPngRGBA(file) {
+    const buf = readFileSync(file);
+    let offset = 8;
+    let width = 0, height = 0, colorType = 6, bitDepth = 8, interlace = 0;
+    const idat = [];
+    while (offset < buf.length) {
+        const len = buf.readUInt32BE(offset);
+        const type = buf.toString('ascii', offset + 4, offset + 8);
+        const data = buf.slice(offset + 8, offset + 8 + len);
+        if (type === 'IHDR') {
+            width = data.readUInt32BE(0);
+            height = data.readUInt32BE(4);
+            bitDepth = data[8];
+            colorType = data[9];
+            interlace = data[12];
+        }
+        else if (type === 'IDAT') idat.push(data);
+        else if (type === 'IEND') break;
+        offset += 12 + len;
+    }
+    if (bitDepth !== 8 || interlace !== 0) throw new Error(`不支持的 PNG 格式：depth=${bitDepth} interlace=${interlace}`);
+    const channels = colorType === 6 ? 4 : (colorType === 2 ? 3 : 1);
+    const raw = inflateSync(Buffer.concat(idat));
+    const stride = width * channels;
+    const out = Buffer.alloc(width * height * 4);
+    const prev = Buffer.alloc(stride);
+    const line = Buffer.alloc(stride);
+
+    const paeth = (a, b, c) => {
+        const p = a + b - c;
+        const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+        if (pa <= pb && pa <= pc) return a;
+        return pb <= pc ? b : c;
+    };
+
+    for (let y = 0; y < height; y++) {
+        const filter = raw[y * (stride + 1)];
+        const src = raw.slice(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+        for (let i = 0; i < stride; i++) {
+            const a = i >= channels ? line[i - channels] : 0;
+            const b = prev[i];
+            const c = i >= channels ? prev[i - channels] : 0;
+            let v = src[i];
+            if (filter === 1) v = (v + a) & 255;
+            else if (filter === 2) v = (v + b) & 255;
+            else if (filter === 3) v = (v + ((a + b) >> 1)) & 255;
+            else if (filter === 4) v = (v + paeth(a, b, c)) & 255;
+            line[i] = v;
+        }
+        for (let x = 0; x < width; x++) {
+            const si = x * channels;
+            const di = (y * width + x) * 4;
+            if (channels === 4) {
+                out[di] = line[si]; out[di + 1] = line[si + 1]; out[di + 2] = line[si + 2]; out[di + 3] = line[si + 3];
+            }
+            else if (channels === 3) {
+                out[di] = line[si]; out[di + 1] = line[si + 1]; out[di + 2] = line[si + 2]; out[di + 3] = 255;
+            }
+            else {
+                out[di] = line[si]; out[di + 1] = line[si]; out[di + 2] = line[si]; out[di + 3] = 255;
+            }
+        }
+        line.copy(prev);
+    }
+    return { w: width, h: height, data: out };
+}
+
+/** 参考稿内嵌的默认武将画像（透明底剪影） */
+function loadPortrait() {
+    try {
+        return readPngRGBA(join(ROOT, 'tools', 'source', 'portrait_default.png'));
+    }
+    catch (e) {
+        console.warn('默认武将画像缺失，跳过 portrait_default 贴图', e.message);
+        return null;
+    }
+}
+
+const PORTRAIT = loadPortrait();
+
 /** 贴图定义：文件名、尺寸、绘制函数、九宫格边框 */
 const TEXTURES = [
     { name: 'tex_bg', w: 8, h: 256, paint: () => paintGradient(8, 256, [[0x1c, 0x18, 0x12], [0x0b, 0x09, 0x07]]), border: 0 },
+    // 战争红金风（对齐参考稿：朱红底 + 赤金描边）
+    { name: 'tex_bg_red', w: 8, h: 256, paint: () => paintGradient(8, 256, [[0x9e, 0x2f, 0x28], [0x5e, 0x15, 0x12]]), border: 0 },
+    { name: 'tex_panel_rail', w: 64, h: 64, paint: () => paintRounded(64, 64, 10, ['#3D1A10', 255], '#8A5A2B', 2), border: 12 },
+    // 获得武将演出用的渐变贴图（含透明通道）
+    { name: 'tex_glow', w: 256, h: 256, paint: () => paintRadial(256, 256, [255, 230, 158, 255], [232, 158, 56, 150], 0.34), border: 0 },
+    { name: 'tex_glow_warm', w: 256, h: 256, paint: () => paintRadial(256, 256, [232, 158, 56, 200], [120, 60, 10, 80], 0.42), border: 0 },
+    { name: 'tex_ray', w: 32, h: 512, paint: () => paintRay(32, 512), border: 0 },
+    { name: 'tex_star', w: 32, h: 32, paint: () => paintStar(32), border: 0 },
+    { name: 'tex_sheen', w: 64, h: 512, paint: () => paintSheen(64, 512), border: 0 },
+    { name: 'tex_btn_gold', w: 64, h: 64, paint: () => paintRounded(64, 64, 8, ['#C9A227', 255], '#6E5010', 2), border: 10 },
     { name: 'tex_panel', w: 64, h: 64, paint: () => paintRounded(64, 64, 16, ['#1E1A15', 255], '#3A3128', 1.2), border: 16 },
     { name: 'tex_panel_raise', w: 64, h: 64, paint: () => paintRounded(64, 64, 16, ['#2A241C', 255], '#4A3E2E', 1.4), border: 16 },
     { name: 'tex_frame_gold', w: 64, h: 64, paint: () => paintRounded(64, 64, 16, null, '#C8A15A', 2.4), border: 16 },
@@ -226,6 +396,8 @@ const TEXTURES = [
     { name: 'tex_chip', w: 64, h: 64, paint: () => paintRounded(64, 64, 12, ['#FFFFFF', 255], null, 0), border: 12 },
     { name: 'tex_circle', w: 64, h: 64, paint: () => paintCircle(64, 64), border: 0 },
     { name: 'tex_solid', w: 8, h: 8, paint: () => paintSolid(8, 8), border: 0 },
+    // 参考稿内嵌的默认武将画像（透明底剪影，600×1001）
+    ...(PORTRAIT != null ? [{ name: 'portrait_default', w: PORTRAIT.w, h: PORTRAIT.h, paint: () => PORTRAIT.data, border: 0 }] : []),
 ];
 
 const TEX_UUID = {};
@@ -462,9 +634,12 @@ class PrefabBuilder {
                 _isUnderline: false,
                 _underlineHeight: 2,
                 _cacheMode: 0,
-                _enableOutline: false,
-                _outlineColor: { __type__: 'cc.Color', r: 0, g: 0, b: 0, a: 255 },
-                _outlineWidth: 2,
+                _enableOutline: l.outline === true,
+                _outlineColor: (() => {
+                    const oc = hexToRgba(l.outlineColor ?? '#000000', 255);
+                    return { __type__: 'cc.Color', r: oc[0], g: oc[1], b: oc[2], a: oc[3] };
+                })(),
+                _outlineWidth: l.outlineWidth ?? 2,
                 _enableShadow: false,
                 _shadowColor: { __type__: 'cc.Color', r: 0, g: 0, b: 0, a: 255 },
                 _shadowOffset: { __type__: 'cc.Vec2', x: 2, y: 2 },
@@ -632,6 +807,14 @@ const SCRIPTS = {
     MainViewComp: { file: 'main/MainViewComp.ts', uuid: uuidFrom('sanguo:script:MainViewComp') },
     LevelSelectViewComp: { file: 'main/LevelSelectViewComp.ts', uuid: uuidFrom('sanguo:script:LevelSelectViewComp') },
     CodexViewComp: { file: 'main/CodexViewComp.ts', uuid: uuidFrom('sanguo:script:CodexViewComp') },
+    EquipViewComp: { file: 'main/EquipViewComp.ts', uuid: uuidFrom('sanguo:script:EquipViewComp') },
+    DraftViewComp: { file: 'main/DraftViewComp.ts', uuid: uuidFrom('sanguo:script:DraftViewComp') },
+    HelpViewComp: { file: 'main/HelpViewComp.ts', uuid: uuidFrom('sanguo:script:HelpViewComp') },
+    EquipDetailViewComp: { file: 'main/EquipDetailViewComp.ts', uuid: uuidFrom('sanguo:script:EquipDetailViewComp') },
+    StratViewComp: { file: 'battle/view/StratViewComp.ts', uuid: uuidFrom('sanguo:script:StratViewComp') },
+    StoryViewComp: { file: 'battle/view/StoryViewComp.ts', uuid: uuidFrom('sanguo:script:StoryViewComp') },
+    GetHeroViewComp: { file: 'battle/view/GetHeroViewComp.ts', uuid: uuidFrom('sanguo:script:GetHeroViewComp') },
+    UnitDetailViewComp: { file: 'battle/view/UnitDetailViewComp.ts', uuid: uuidFrom('sanguo:script:UnitDetailViewComp') },
     SettingsViewComp: { file: 'main/SettingsViewComp.ts', uuid: uuidFrom('sanguo:script:SettingsViewComp') },
     BattleViewComp: { file: 'battle/view/BattleViewComp.ts', uuid: uuidFrom('sanguo:script:BattleViewComp') },
     PauseViewComp: { file: 'battle/view/PauseViewComp.ts', uuid: uuidFrom('sanguo:script:PauseViewComp') },
@@ -700,12 +883,257 @@ function mainPrefab() {
         ...stat('stat_stars', -390, ''),
         ...stat('stat_kills', -240, ''),
         label('all_clear', '', 15, C.goldSoft, -580, -252, { align: 'left', ax: 0, active: false }),
+        label('best_wave', '', 13, '#8FB8FF', -580, -288, { align: 'left', ax: 0, active: false }),
         card('card_levels', '关', '', '', 168),
-        card('card_codex', '鉴', '', '', 40),
-        card('card_settings', '设', '', '', -88),
-        sprite('footer_line', 'tex_solid', 460, 1, { x: 350, y: -176, color: C.textMuted, alpha: 80 }),
+        card('card_equip', '装', '', '', 40),
+        card('card_codex', '鉴', '', '', -88),
+        card('card_settings', '设', '', '', -216),
+        sprite('footer_line', 'tex_solid', 460, 1, { x: 350, y: -292, color: C.textMuted, alpha: 80 }),
         label('lang', '', 13, C.textMuted, -585, -336, { align: 'left', ax: 0 }),
         label('version', '', 13, C.textMuted, 585, -336, { align: 'right', ax: 1 }),
+    ]);
+}
+
+/** 剧情对话（底部对话条，点任意处继续） */
+function storyPrefab() {
+    return rootSpec('story', 'StoryViewComp', [
+        sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 150, blockInput: true }),
+        button('btn_skip', '', 130, 46, 520, 300, { size: 16 }),
+        sprite('panel', 'tex_panel', 1120, 250, { y: -170, blockInput: true }, [
+            label('speaker', '', 20, C.gold, -520, 84, { bold: true, align: 'left', ax: 0 }),
+            label('text', '', 16, C.text, -520, 40, { align: 'left', ax: 0, ay: 1, wrap: true, width: 1040 }),
+            label('tap', '', 12, C.textMuted, 500, -100, { align: 'right', ax: 1 }),
+        ]),
+    ]);
+}
+
+/**
+ * 获得武将演出（逐帧驱动，节点全部来自预制体）
+ *
+ * 结构对齐参考稿画布版：
+ *   dim（黑幕）· glow/glow_inner（双层金色背光）· rays（14 道旋转光芒）
+ *   star_root（星屑容器，运行时从 get_hero_star 实例化）· card（金框 + 内底 + 白闪 + 扫光 + 四角饰）
+ *   title（获得武将）· name（名号）· talent（天赋）· hint（轻触继续）
+ */
+function getHeroPrefab() {
+    // 7 根贯通长条 = 视觉上 14 道光芒（与参考稿 14 道等分一致：镜像后间距 25.7°）
+    const rays = [];
+    for (let i = 0; i < 7; i++) {
+        rays.push(sprite(`r${i}`, 'tex_ray', 30, 520, { color: '#FFFFFF', opacity: 0 }));
+    }
+
+    return rootSpec('get_hero', 'GetHeroViewComp', [
+        sprite('dim', 'tex_solid', 1280, 720, { color: '#080402', opacity: 0, blockInput: true }),
+        // 双层背光：外层暖橙扩散 + 内芯奶白金（对应参考稿径向渐变两段）
+        sprite('glow', 'tex_glow_warm', 1000, 1000, { y: 36, color: '#FFFFFF', opacity: 0 }),
+        sprite('glow_inner', 'tex_glow', 620, 620, { y: 36, color: '#FFFFFF', opacity: 0 }),
+        node('rays', { y: 36, w: 520, h: 520, opacity: 0 }, rays),
+        node('star_root', { y: 36, w: 1280, h: 700, opacity: 0 }),
+        sprite('card', 'tex_panel_rail', 210, 300, { y: 36, opacity: 0 }, [
+            // 卡下投影（参考稿 bx+3, by+5 的暗影）
+            sprite('shadow', 'tex_panel_rail', 210, 300, { x: 4, y: -6, color: '#000000', alpha: 140 }),
+            // 纯白 solid 纸底：tex_solid 是 100% 白，染纸色最可靠，任何情况下都不会变黑
+            sprite('paper', 'tex_solid', 210, 300, { color: '#E6D3AE' }),
+            // 必须用「白色」贴图做染色底：Sprite 颜色与贴图颜色是乘算，
+            // 深色贴图（如 tex_panel_rail）染纸色会变成近黑。
+            sprite('inner', 'tex_chip', 180, 270, { color: '#DCC49B' }),
+            // 浅色纸底：默认画像是近黑剪影，参考稿用「卡面纸底透出」的方式承托
+            sprite('backdrop', 'tex_chip', 180, 300, { color: '#E6D3AE' }),
+            // 与源图 600×1001 同比例（180×300）；不透明度压到 215，
+            // 万一贴图 alpha 被引擎忽略，也只会变成灰色块而不是纯黑
+            sprite('portrait', 'portrait_default', 180, 300, { color: '#FFFFFF', opacity: 215 }),
+            sprite('chip', 'tex_chip', 150, 150, { color: '#2A241C', active: false }),
+            label('tag', '', 64, '#F4D98A', 0, 0, { bold: true, active: false }),
+            label('card_name', '', 16, '#3B2410', 0, -120, {
+                bold: true, outline: true, outlineColor: '#F2E0BC', outlineWidth: 2,
+            }),
+            sprite('flash', 'tex_solid', 210, 300, { color: '#FFFFFF', opacity: 0 }),
+            sprite('sweep', 'tex_sheen', 60, 420, { color: '#FFFFFF', opacity: 0 }),
+            sprite('c1', 'tex_solid', 20, 14, { color: '#FFE9A8', x: -95, y: 143 }),
+            sprite('c2', 'tex_solid', 20, 14, { color: '#FFE9A8', x: 95, y: 143 }),
+            sprite('c3', 'tex_solid', 20, 14, { color: '#FFE9A8', x: -95, y: -143 }),
+            sprite('c4', 'tex_solid', 20, 14, { color: '#FFE9A8', x: 95, y: -143 }),
+            sprite('frame', 'tex_frame_gold', 210, 300),
+        ]),
+        label('title', '', 26, '#FFD24A', 0, 246, {
+            bold: true, opacity: 0, outline: true, outlineColor: '#3C1A04', outlineWidth: 4,
+        }),
+        label('name', '', 30, '#FFF6DC', 0, -165, {
+            bold: true, opacity: 0, outline: true, outlineColor: '#321404', outlineWidth: 4,
+        }),
+        label('talent', '', 14, '#FFE2A0', 0, -204, { opacity: 0 }),
+        label('hint', '', 15, '#FFE6A8', 0, -296, { bold: true, opacity: 0 }),
+    ]);
+}
+
+/**
+ * 获得武将卡面（独立预制体）
+ *
+ * 演出层若检测不到画像节点，会用本预制体补建，保证任何情况下都能看到画像 + 阵营色底。
+ */
+function heroPortraitPrefab() {
+    return node('hero_portrait', { w: 180, h: 300 }, [
+        sprite('paper', 'tex_solid', 180, 300, { color: '#E6D3AE' }),
+        sprite('backdrop', 'tex_chip', 180, 300, { color: '#E6D3AE' }),
+        sprite('portrait', 'portrait_default', 180, 300, { color: '#FFFFFF', opacity: 215 }),
+    ]);
+}
+
+/** 星屑粒子（获得武将演出用） */
+function getHeroStarPrefab() {
+    return node('get_hero_star', { w: 12, h: 12, opacity: 0 }, [
+        sprite('dot', 'tex_star', 12, 12, { color: '#FFFFFF' }),
+    ]);
+}
+
+/** 卡片详情 */
+function unitDetailPrefab() {
+    return rootSpec('unit_detail', 'UnitDetailViewComp', [
+        sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 185, blockInput: true }),
+        sprite('panel', 'tex_panel', 640, 560, {}, [
+            label('name', '', 28, C.gold, 0, 232, { bold: true }),
+            label('kind', '', 14, C.textMuted, 0, 198),
+            label('stat1', '', 15, C.text, 0, 142),
+            label('stat2', '', 15, C.text, 0, 106),
+            label('stat3', '', 15, C.text, 0, 70),
+            label('stat4', '', 15, C.text, 0, 34),
+            label('stat5', '', 15, C.text, 0, -2),
+            label('talent_name', '', 17, C.goldSoft, 0, -62, { bold: true }),
+            label('talent_desc', '', 13, C.textDim, 0, -152, { wrap: true, width: 560, ay: 1 }),
+            button('btn_close', '', 240, 52, 0, -240, { primary: true, size: 19 }),
+        ]),
+    ]);
+}
+
+/** 玩法说明 */
+function helpPrefab() {
+    return rootSpec('help', 'HelpViewComp', [
+        sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 180, blockInput: true }),
+        sprite('panel', 'tex_panel', 980, 600, {}, [
+            label('title', '', 32, C.gold, 0, 250, { bold: true }),
+            label('goal', '', 15, C.text, -440, 180, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880 }),
+            label('controls', '', 15, C.text, -440, 60, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880 }),
+            label('terms', '', 15, C.textDim, -440, -70, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880 }),
+            button('btn_close', '', 260, 54, 0, -252, { primary: true, size: 20 }),
+        ]),
+    ]);
+}
+
+/** 军师计略 */
+function stratPrefab() {
+    const opt = (name, y) => sprite(`opt_${name}`, 'tex_panel_raise', 560, 84, { y }, [
+        label('name', '', 18, C.gold, -250, 18, { bold: true, align: 'left', ax: 0 }),
+        label('desc', '', 13, C.textDim, -250, -16, { align: 'left', ax: 0, wrap: true, width: 380 }),
+        label('state', '', 15, C.goldSoft, 250, 0, { bold: true, align: 'right', ax: 1 }),
+    ]);
+
+    return rootSpec('strat', 'StratViewComp', [
+        sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 180, blockInput: true }),
+        sprite('panel', 'tex_panel', 640, 520, {}, [
+            label('title', '', 30, C.gold, 0, 210, { bold: true }),
+            label('food', '', 14, C.textMuted, 0, 176),
+            opt('fire', 96),
+            opt('gate', 6),
+            opt('slow', -84),
+            label('hint', '', 12, C.textMuted, 0, -150),
+            button('btn_close', '', 240, 52, 0, -208, { primary: true, size: 19 }),
+        ]),
+    ]);
+}
+
+/** 装备词条详情 */
+function equipDetailPrefab() {
+    return rootSpec('equip_detail', 'EquipDetailViewComp', [
+        sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 185, blockInput: true }),
+        sprite('panel', 'tex_panel', 600, 560, {}, [
+            label('name', '', 26, C.gold, 0, 222, { bold: true }),
+            label('meta', '', 14, C.textMuted, 0, 188),
+            label('line1', '', 15, C.text, 0, 140),
+            label('line2', '', 15, C.text, 0, 106),
+            label('line3', '', 15, C.text, 0, 72),
+            label('line4', '', 15, C.text, 0, 38),
+            label('desc', '', 13, C.textDim, 0, -46, { wrap: true, width: 520, ay: 1 }),
+            label('status', '', 13, C.goldSoft, 0, -132),
+            button('btn_action', '', 220, 52, 0, -186, { primary: true, size: 18 }),
+            button('btn_close', '', 220, 46, 0, -246, { size: 17 }),
+        ]),
+    ]);
+}
+
+/** 选将（出战阵容）界面 */
+function draftPrefab() {
+    return rootSpec('draft', 'DraftViewComp', [
+        sprite('bg', 'tex_bg', 1280, 720, { color: '#FFFFFF' }),
+        sprite('line_top', 'tex_solid', 1280, 2, { y: 336, color: C.gold, alpha: 60 }),
+        button('btn_back', '', 108, 46, -560, 296, { size: 18 }),
+        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
+        label('level_name', '', 20, C.goldSoft, 0, 232),
+        label('tip', '', 13, C.textMuted, 0, 196),
+        node('grid', { x: 0, y: 20, w: 1020, h: 300 }),
+        label('count', '', 16, C.goldSoft, 0, -198, { bold: true }),
+        button('btn_all', '', 170, 46, -300, -262, { size: 16 }),
+        button('btn_clear', '', 170, 46, -110, -262, { size: 16 }),
+        button('btn_start', '', 240, 56, 200, -262, { primary: true, size: 20 }),
+    ]);
+}
+
+/** 选将卡片 */
+function draftItemPrefab() {
+    return node('draft_item', { w: 150, h: 112 }, [
+        sprite('bg', 'tex_panel_raise', 150, 112, { color: '#FFFFFF' }),
+        sprite('frame', 'tex_frame_gold', 150, 112, { active: false }),
+        sprite('chip', 'tex_chip', 40, 66, { x: -50, y: 22, color: '#2A241C' }),
+        sprite('portrait', 'portrait_default', 36, 60, { x: -50, y: 24, color: '#FFFFFF' }),
+        label('tag', '', 18, C.textMuted, -50, -34, { bold: true }),
+        label('name', '', 16, C.text, 24, 30, { bold: true }),
+        label('cost', '', 14, C.goldSoft, 24, 6),
+        label('check', '✓', 22, '#6AD06A', 56, -34, { active: false }),
+    ]);
+}
+
+/** 装备界面 */
+function equipPrefab() {
+    const slot = (name, y) => sprite(name, 'tex_panel_raise', 480, 46, { y }, [
+        label('name', '', 15, C.text, -220, 0, { align: 'left', ax: 0 }),
+        label('value', '', 13, C.goldSoft, 220, 0, { align: 'right', ax: 1 }),
+    ]);
+
+    return rootSpec('equip', 'EquipViewComp', [
+        sprite('bg', 'tex_bg', 1280, 720, { color: '#FFFFFF' }),
+        sprite('line_top', 'tex_solid', 1280, 2, { y: 336, color: C.gold, alpha: 60 }),
+        button('btn_back', '', 108, 46, -560, 296, { size: 18 }),
+        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
+        label('bag_count', '', 14, C.textMuted, 580, 296, { align: 'right', ax: 1 }),
+        node('unit_list', { x: -400, y: -20, w: 380, h: 520 }),
+        sprite('panel', 'tex_panel', 520, 420, { x: 330, y: 60 }, [
+            label('unit_name', '', 24, C.gold, 0, 170, { bold: true }),
+            label('unit_kind', '', 13, C.textMuted, 0, 140),
+            slot('slot_weapon', 92),
+            slot('slot_armor', 42),
+            slot('slot_horse', -8),
+            slot('slot_treasure', -58),
+            label('stats', '', 13, C.textDim, 0, -112, { wrap: true, width: 470 }),
+            label('hint', '', 12, C.textMuted, 0, -172),
+        ]),
+        node('bag_list', { x: 330, y: -258, w: 540, h: 190 }),
+    ]);
+}
+
+/** 装备界面的武将行 */
+function equipRowPrefab() {
+    return node('equip_row', { w: 180, h: 40 }, [
+        sprite('bg', 'tex_panel', 180, 40, { color: '#FFFFFF' }),
+        label('name', '', 14, C.text, -84, 0, { align: 'left', ax: 0 }),
+        label('mark', '', 11, C.goldSoft, 84, 0, { align: 'right', ax: 1 }),
+    ]);
+}
+
+/** 装备界面的装备条目 */
+function equipItemPrefab() {
+    return node('equip_item', { w: 100, h: 42 }, [
+        sprite('bg', 'tex_panel', 100, 42, { color: '#FFFFFF' }),
+        label('name', '', 11, C.text, -44, 0, { align: 'left', ax: 0 }),
+        label('tier', '', 10, C.gold, 44, 0, { align: 'right', ax: 1 }),
     ]);
 }
 
@@ -747,10 +1175,11 @@ function codexPrefab() {
         label('tip', '', 14, C.textMuted, 580, 296, { align: 'right', ax: 1 }),
         button('tab_unit', '', 236, 48, -500, 210, { size: 19 }),
         button('tab_enemy', '', 236, 48, -240, 210, { size: 19 }),
-        node('list', { x: -360, y: 20, w: 760, h: 420 }),
+        node('list', { x: -240, y: 20, w: 760, h: 420 }),
         sprite('detail', 'tex_panel', 340, 440, { x: 430, y: 20 }, [
-            sprite('head_chip', 'tex_chip', 92, 92, { y: 146, color: C.bgRaise }),
-            label('head_tag', '', 40, C.bgDeep, 0, 146, { bold: true }),
+            sprite('head_chip', 'tex_chip', 76, 124, { y: 150, color: C.bgRaise }),
+            sprite('head_portrait', 'portrait_default', 72, 120, { y: 150, color: '#FFFFFF' }),
+            label('head_tag', '', 30, C.goldSoft, 0, 88, { bold: true }),
             label('head_name', '', 26, C.goldSoft, 0, 78, { bold: true }),
             label('head_kind', '', 14, C.textMuted, 0, 52),
             node('rows', { y: 20, w: 300, h: 180 }),
@@ -816,43 +1245,80 @@ function battlePrefab() {
         ]));
     }
 
+    // 参考稿布局：左侧栏（粮草/斩获 → 竖排卡槽 → 操作按钮）+ 右侧（细顶栏 + 战场）
+    const railBtn = (name, x, y) => sprite(name, 'tex_btn_gold', 64, 42, { x, y }, [
+        label('label', '', 13, '#3A2408', 0, 0, { bold: true }),
+    ]);
+
     return rootSpec('battle', 'BattleViewComp', [
-        sprite('bg', 'tex_bg', 1280, 720, { color: '#FFFFFF' }),
-        // 顶部 HUD
-        sprite('food_chip', 'tex_circle', 52, 52, { x: -560, y: 318, color: C.gold }, [
-            label('tag', '粮', 22, C.bgDeep, 0, 0, { bold: true }),
+        sprite('bg', 'tex_bg_red', 1280, 720, { color: '#FFFFFF' }),
+
+        //#region 左侧栏
+        sprite('rail_bg', 'tex_panel_rail', 214, 704, { x: -530, y: 0, alpha: 235 }),
+        sprite('stats_panel', 'tex_panel_rail', 198, 60, { x: -530, y: 302 }, [
+            label('logo', '三國志', 13, C.gold, -92, 0, { bold: true, align: 'left', ax: 0 }),
+            label('food_icon', '粮', 15, C.goldSoft, -22, 0),
+            label('food_value', '0', 16, '#F4D98A', 2, 0, { bold: true, align: 'left', ax: 0 }),
+            label('kills_icon', '⚔', 14, C.textMuted, 52, 0),
+            label('kills_value', '0', 15, '#F4D98A', 68, 0, { bold: true, align: 'left', ax: 0 }),
         ]),
-        label('food_value', '0', 26, C.goldSoft, -524, 318, { bold: true, align: 'left', ax: 0 }),
-        sprite('wave_bar_bg', 'tex_solid', 420, 10, { x: 30, y: 322, color: '#000000', alpha: 120 }),
-        sprite('wave_bar_fill', 'tex_solid', 420, 10, { x: -180, y: 322, ax: 0, color: C.gold }),
-        label('wave_text', '', 14, C.textDim, 30, 298),
-        button('btn_pause', '', 88, 40, 486, 318, { size: 16 }),
-        button('btn_speed', '', 88, 40, 582, 318, { size: 16 }),
-        // 战场
-        node('board', { x: -70, y: 10, w: BOARD_W, h: BOARD_H }, [
-            sprite('wall', 'tex_solid', 104, BOARD_H, { x: -BOARD_W / 2 - 54, color: '#3A3128' }),
-            sprite('wall_line', 'tex_solid', 3, BOARD_H, { x: -BOARD_W / 2 - 3, color: C.gold, alpha: 90 }),
+        label('bond_tag', '', 11, '#8FB8FF', -530, 268, { bold: true, active: false }),
+        node('cards', { x: -530, y: 20, w: 200, h: 430 }),
+        railBtn('btn_retreat', -596, -286),
+        railBtn('btn_cancel', -530, -286),
+        railBtn('btn_pause', -464, -286),
+        railBtn('btn_speed', -596, -334),
+        railBtn('btn_mute', -530, -334),
+        railBtn('btn_help', -464, -334),
+        //#endregion
+
+        //#region 顶栏：关卡 / 波次 / 余敌 / 波次进度 / 城门
+        sprite('topbar', 'tex_panel_rail', 1040, 50, { x: 110, y: 320 }, [
+            label('level_name', '', 14, '#F4D98A', -498, 0, { bold: true, align: 'left', ax: 0 }),
+            label('wave_text', '', 13, C.textDim, -336, 0, { align: 'left', ax: 0 }),
+            label('remain_text', '', 12, '#F0C060', -216, 0, { align: 'left', ax: 0 }),
+            sprite('wave_bar_bg', 'tex_solid', 210, 12, { x: -40, y: 0, color: '#20100A' }),
+            sprite('wave_fill', 'tex_solid', 210, 12, { x: -145, y: 0, ax: 0, color: '#6AD06A' }),
+            label('gate_label', '城门', 12, C.textDim, 112, 0),
+            sprite('gate_bar_bg', 'tex_solid', 120, 12, { x: 196, y: 0, color: '#20100A' }),
+            sprite('gate_fill', 'tex_solid', 120, 12, { x: 136, y: 0, ax: 0, color: '#E8B84A' }),
+            label('gate_value', '', 13, '#F4D98A', 288, 0, { bold: true }),
+            node('wave_flags', { x: -40, y: 0, w: 210, h: 18 }),
+            label('next_wave', '', 10, '#9FD0A0', -40, -16, { align: 'left', ax: 0 }),
+            button('btn_strat', '', 108, 36, 420, 0, { size: 14 }),
+        ]),
+        //#endregion
+
+        //#region 战场
+        node('board', { x: 110, y: 20, w: BOARD_W, h: BOARD_H }, [
+            sprite('wall', 'tex_solid', 104, BOARD_H, { x: -BOARD_W / 2 - 54, color: '#5A3A28' }),
+            // 城墙破损分档（只切换预制体节点的显隐，不在运行时绘制）
+            sprite('wall_crack_1', 'tex_solid', 58, 70, { x: -BOARD_W / 2 - 48, y: 120, color: '#120C08', alpha: 210, active: false }),
+            sprite('wall_crack_2', 'tex_solid', 70, 96, { x: -BOARD_W / 2 - 60, y: -20, color: '#120C08', alpha: 210, active: false }),
+            sprite('wall_crack_3', 'tex_solid', 84, 130, { x: -BOARD_W / 2 - 44, y: -140, color: '#120C08', alpha: 220, active: false }),
+            sprite('wall_fire', 'tex_solid', 96, BOARD_H, { x: -BOARD_W / 2 - 54, color: '#B33A22', alpha: 90, active: false }),
+            sprite('wall_line', 'tex_solid', 3, BOARD_H, { x: -BOARD_W / 2 - 3, color: C.gold, alpha: 110 }),
             node('field', { w: BOARD_W, h: BOARD_H }, cells),
             node('mowers', { w: BOARD_W, h: BOARD_H }, mowers),
             node('actors', { w: BOARD_W, h: BOARD_H }),
             node('input', { w: BOARD_W, h: BOARD_H }),
         ]),
-        // 底部（卡片栏居中于左侧可用区域，避免 12 张卡时超出 1280 设计宽度）
-        node('cards', { x: -150, y: -300, w: 900, h: 110 }),
-        button('btn_retreat', '', 130, 48, 400, -300, { size: 17 }),
-        button('btn_cancel', '', 130, 48, 542, -300, { size: 17 }),
-        label('hint', '', 14, C.textDim, 0, -366),
+        label('hint', '', 13, '#E8CF95', 110, -250),
+        // 浓雾关：右侧两列视觉遮蔽
+        sprite('fog', 'tex_solid', 192, BOARD_H, { x: 446, y: 20, color: '#0B0907', alpha: 210, active: false }),
+        //#endregion
+
         // 大波横幅
-        sprite('banner', 'tex_btn_primary', 460, 64, { y: 140, active: false }, [
-            label('text', '', 30, C.bgDeep, 0, 0, { bold: true }),
+        sprite('banner', 'tex_btn_gold', 460, 64, { x: 110, y: 150, active: false }, [
+            label('text', '', 30, '#3A2408', 0, 0, { bold: true }),
         ]),
-        // 新手引导
-        sprite('guide', 'tex_panel', 620, 78, { y: -232, active: false }, [
-            label('text', '', 15, C.text, -290, 0, { align: 'left', ax: 0, wrap: true, width: 560 }),
+        // 新手引导：战场顶部提示带（参考稿 guideHint 位置）
+        sprite('guide', 'tex_panel_rail', 780, 62, { x: 110, y: 252, active: false }, [
+            label('text', '', 14, '#FFE9B0', -370, 0, { align: 'left', ax: 0, wrap: true, width: 720 }),
         ]),
         // 调试面板
-        node('debug', { x: 470, y: 130, w: 300, h: 230, active: false }, [
-            sprite('bg', 'tex_panel', 300, 230, { color: '#FFFFFF' }),
+        node('debug', { x: 460, y: 120, w: 300, h: 230, active: false }, [
+            sprite('bg', 'tex_panel_rail', 300, 230, { color: '#FFFFFF' }),
             button('btn_food', '+500 粮', 260, 40, 0, 78, { size: 15 }),
             button('btn_wave', '下一波', 260, 40, 0, 30, { size: 15 }),
             button('btn_kill', '全灭敌军', 260, 40, 0, -18, { size: 15 }),
@@ -887,6 +1353,7 @@ function resultPrefab() {
             label('star3', '☆', 46, C.textMuted, 64, 92),
             label('time', '', 16, C.textDim, 0, 36),
             label('unlock', '', 16, C.goldSoft, 0, 4),
+            label('drop', '', 15, '#8FB8FF', 0, -36, { bold: true }),
             button('btn_retry', '', 200, 52, -108, -96, { size: 19 }),
             button('btn_next', '', 200, 52, 108, -96, { primary: true, size: 19 }),
             button('btn_home', '', 300, 50, 0, -170, { size: 18 }),
@@ -910,13 +1377,15 @@ function levelCardPrefab() {
 }
 
 function codexItemPrefab() {
-    return node('codex_item', { w: 236, h: 66 }, [
-        sprite('bg', 'tex_panel', 236, 66, { color: '#FFFFFF' }),
-        sprite('frame', 'tex_frame_gold', 236, 66, { active: false }),
-        sprite('chip', 'tex_chip', 44, 44, { x: -88, color: '#2A241C' }),
-        label('tag', '', 20, C.bgDeep, -88, 0, { bold: true }),
-        label('name', '', 17, C.text, -56, 12, { align: 'left', ax: 0 }),
-        label('kind', '', 12, C.textMuted, -56, -14, { align: 'left', ax: 0 }),
+    // 23 名武将需要 4 列 × 6 行展示，条目相应收窄
+    return node('codex_item', { w: 180, h: 56 }, [
+        sprite('bg', 'tex_panel', 180, 56, { color: '#FFFFFF' }),
+        sprite('frame', 'tex_frame_gold', 180, 56, { active: false }),
+        sprite('chip', 'tex_chip', 28, 46, { x: -72, color: '#2A241C' }),
+        sprite('portrait', 'portrait_default', 24, 40, { x: -72, color: '#FFFFFF' }),
+        label('tag', '', 14, C.textMuted, -72, -25, { bold: true }),
+        label('name', '', 14, C.text, -44, 8, { align: 'left', ax: 0 }),
+        label('kind', '', 11, C.textMuted, -44, -10, { align: 'left', ax: 0 }),
     ]);
 }
 
@@ -935,16 +1404,19 @@ function detailRowPrefab() {
     ]);
 }
 
+/** 左栏竖排卡槽卡：横向「种子包」样式（画像 + 名号 + 费用 + 冷却遮罩） */
 function cardPrefab() {
-    return node('card', { w: 92, h: 106 }, [
-        sprite('bg', 'tex_panel', 92, 106, { color: '#FFFFFF' }),
-        sprite('frame', 'tex_frame_gold', 92, 106, { active: false }),
-        sprite('chip', 'tex_chip', 52, 52, { y: 18, color: '#E0B64A' }),
-        label('tag', '', 24, C.bgDeep, 0, 18, { bold: true }),
-        label('name', '', 12, C.textDim, 0, -16),
-        label('cost', '', 14, C.goldSoft, 0, -34, { bold: true }),
-        sprite('mask', 'tex_solid', 92, 106, { color: '#000000', alpha: 160, ay: 1, y: 53 }),
-        label('mask_text', '', 13, C.textDim, 0, 0, { active: false }),
+    return node('card', { w: 96, h: 68 }, [
+        sprite('bg', 'tex_panel', 96, 68, { color: '#FFFFFF' }),
+        sprite('frame', 'tex_frame_gold', 96, 68, { active: false }),
+        // 先垫阵营色块，再叠近黑剪影
+        sprite('chip', 'tex_chip', 34, 56, { x: -27, y: 10, color: '#E0B64A' }),
+        sprite('portrait', 'portrait_default', 30, 50, { x: -27, y: 10, color: '#FFFFFF' }),
+        label('tag', '', 15, '#F4D98A', -27, -17, { bold: true }),
+        label('name', '', 12, C.text, 10, 12),
+        label('cost', '', 12, C.goldSoft, 10, -12, { bold: true }),
+        sprite('mask', 'tex_solid', 96, 68, { color: '#000000', alpha: 170, ay: 1, y: 34 }),
+        label('mask_text', '', 12, C.textDim, 0, 0, { active: false }),
     ]);
 }
 //#endregion
@@ -992,6 +1464,13 @@ function floatTextPrefab() {
     ]);
 }
 
+/** 波次旗标 */
+function waveFlagPrefab() {
+    return node('wave_flag', { w: 6, h: 22 }, [
+        sprite('bar', 'tex_solid', 2, 18, { color: '#CAA84A' }),
+    ]);
+}
+
 /** 爆炸/命中光圈 */
 function fxBurstPrefab() {
     return node('fx_burst', { w: 120, h: 120, opacity: 220 }, [
@@ -1011,6 +1490,19 @@ const PREFABS = [
     { path: 'gui/main/main.prefab', builder: () => new PrefabBuilder('main').build(mainPrefab()) },
     { path: 'gui/main/level_select.prefab', builder: () => new PrefabBuilder('level_select').build(levelSelectPrefab()) },
     { path: 'gui/main/codex.prefab', builder: () => new PrefabBuilder('codex').build(codexPrefab()) },
+    { path: 'gui/battle/get_hero.prefab', builder: () => new PrefabBuilder('get_hero').build(getHeroPrefab()) },
+    { path: 'gui/battle/get_hero_star.prefab', builder: () => new PrefabBuilder('get_hero_star').build(getHeroStarPrefab()) },
+    { path: 'gui/battle/hero_portrait.prefab', builder: () => new PrefabBuilder('hero_portrait').build(heroPortraitPrefab()) },
+    { path: 'gui/battle/story.prefab', builder: () => new PrefabBuilder('story').build(storyPrefab()) },
+    { path: 'gui/battle/unit_detail.prefab', builder: () => new PrefabBuilder('unit_detail').build(unitDetailPrefab()) },
+    { path: 'gui/main/help.prefab', builder: () => new PrefabBuilder('help').build(helpPrefab()) },
+    { path: 'gui/battle/strat.prefab', builder: () => new PrefabBuilder('strat').build(stratPrefab()) },
+    { path: 'gui/main/draft.prefab', builder: () => new PrefabBuilder('draft').build(draftPrefab()) },
+    { path: 'gui/main/draft_item.prefab', builder: () => new PrefabBuilder('draft_item').build(draftItemPrefab()) },
+    { path: 'gui/main/equip.prefab', builder: () => new PrefabBuilder('equip').build(equipPrefab()) },
+    { path: 'gui/main/equip_detail.prefab', builder: () => new PrefabBuilder('equip_detail').build(equipDetailPrefab()) },
+    { path: 'gui/main/equip_row.prefab', builder: () => new PrefabBuilder('equip_row').build(equipRowPrefab()) },
+    { path: 'gui/main/equip_item.prefab', builder: () => new PrefabBuilder('equip_item').build(equipItemPrefab()) },
     { path: 'gui/main/settings.prefab', builder: () => new PrefabBuilder('settings').build(settingsPrefab()) },
     { path: 'gui/battle/battle.prefab', builder: () => new PrefabBuilder('battle').build(battlePrefab()) },
     { path: 'gui/battle/pause.prefab', builder: () => new PrefabBuilder('pause').build(pausePrefab()) },
@@ -1026,6 +1518,7 @@ const PREFABS = [
     { path: 'gui/battle/actor_food.prefab', builder: () => new PrefabBuilder('actor_food').build(actorFoodPrefab()) },
     { path: 'gui/battle/float_text.prefab', builder: () => new PrefabBuilder('float_text').build(floatTextPrefab()) },
     { path: 'gui/battle/fx_burst.prefab', builder: () => new PrefabBuilder('fx_burst').build(fxBurstPrefab()) },
+    { path: 'gui/battle/wave_flag.prefab', builder: () => new PrefabBuilder('wave_flag').build(waveFlagPrefab()) },
     { path: 'gui/battle/mower.prefab', builder: () => new PrefabBuilder('mower').build(mowerPrefab()) },
 ];
 

@@ -11,11 +11,25 @@ export class GridMap {
     readonly cols: number;
     /** 占用表，索引 = row * cols + col，值为单位 uid，0 表示空 */
     private cells: number[];
+    /** 不可部署格（高山 / 激流 / 墓碑） */
+    private blocked: boolean[];
 
     constructor(rows: number, cols: number) {
         this.rows = rows;
         this.cols = cols;
         this.cells = new Array(rows * cols).fill(0);
+        this.blocked = new Array(rows * cols).fill(false);
+    }
+
+    /** 标记不可部署格 */
+    block(row: number, col: number): void {
+        if (!this.isInside(row, col)) return;
+        this.blocked[row * this.cols + col] = true;
+    }
+
+    isBlocked(row: number, col: number): boolean {
+        if (!this.isInside(row, col)) return true;
+        return this.blocked[row * this.cols + col];
     }
 
     isInside(row: number, col: number): boolean {
@@ -52,7 +66,7 @@ export class GridMap {
         return col + 0.5;
     }
 
-    /** 清空占用表 */
+    /** 清空占用表（不改动不可部署格） */
     clear(): void {
         this.cells.fill(0);
     }

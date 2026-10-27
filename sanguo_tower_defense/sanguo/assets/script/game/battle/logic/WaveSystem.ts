@@ -11,9 +11,28 @@ import { EnemySystem } from './EnemySystem';
  * 3、大波触发时推送横幅表现事件
  */
 export class WaveSystem {
+    /** 无尽模式：按波数程序生成 */
+    private static readonly TIERS: string[][] = [
+        ['inf', 'tuntian', 'yibing'],
+        ['inf', 'yibing', 'cav', 'gongjian'],
+        ['inf', 'iron', 'shield', 'cav'],
+        ['inf', 'arch', 'zhongqi', 'pole'],
+        ['shanyue', 'houqi', 'iron', 'arch'],
+    ];
+
     static update(model: BattleModel, dt: number): void {
-        // 触发到点的波次
-        while (model.waveCursor < model.waves.length && model.time >= model.waves[model.waveCursor].at) {
+        if (model.level.endless === true) {
+            this.updateEndless(model, dt);
+            return;
+        }
+        // 新手引导：部署前暂缓开波（参考稿「放下第一枚将才迎战」）
+        if (model.wavesHeld) {
+            model.waveHoldTime += dt;
+            return;
+        }
+
+        // 触发到点的波次（波次时间轴按挂起时长顺延）
+        while (model.waveCursor < model.waves.length && model.time - model.waveHoldTime >= model.waves[model.waveCursor].at) {
             const wave = model.waves[model.waveCursor];
             this.activate(model, wave);
             model.waveCursor += 1;
@@ -31,6 +50,42 @@ export class WaveSystem {
                 group.timer += Math.max(0.05, group.interval);
             }
         }
+    }
+
+    /** 无尽模式：每 18 秒一波，每 10 波加入主将 */
+    private static updateEndless(model: BattleModel, dt: number): void {
+        model.endlessTimer -= dt;
+        if (model.endlessTimer > 0) return;
+
+        model.endlessWave += 1;
+        model.endlessTimer = 18;
+        this.activate(model, this.generateEndless(model.endlessWave));
+    }
+
+    /** 按波数生成无尽波次（随波数提升兵种与数量） */
+    private static generateEndless(wave: number): IWaveConfig {
+        const tierIndex = Math.min(this.TIERS.length - 1, Math.floor((wave - 1) / 3));
+        const pool = this.TIERS[tierIndex];
+        const count = 3 + Math.floor(wave / 2);
+        const groups = [
+            {
+                enemy: pool[Math.floor(Math.random() * pool.length)],
+                row: -1,
+                count,
+                interval: Math.max(1.2, 3 - wave * 0.03),
+            },
+        ];
+
+        if (wave % 3 === 0) {
+            groups.push({ enemy: pool[Math.floor(Math.random() * pool.length)], row: -1, count: Math.max(2, Math.floor(count / 2)), interval: 1.6 });
+        }
+
+        const big = wave % 10 === 0;
+        if (big) {
+            groups.push({ enemy: 'boss', row: 2, count: 1 + Math.floor(wave / 20), interval: 0.5 });
+        }
+
+        return { id: `endless_${wave}`, at: 0, big, groups };
     }
 
     private static activate(model: BattleModel, wave: IWaveConfig): void {
@@ -53,6 +108,6 @@ export class WaveSystem {
     /** 下一波的时间（用于 HUD 预告），无则返回 -1 */
     static nextWaveTime(model: BattleModel): number {
         if (model.waveCursor >= model.waves.length) return -1;
-        return model.waves[model.waveCursor].at;
+        return model.waves[model.waveCursor].at + model.waveHoldTime;
     }
 }

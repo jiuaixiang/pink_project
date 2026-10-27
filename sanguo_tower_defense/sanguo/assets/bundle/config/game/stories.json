@@ -1,0 +1,30 @@
+[
+  {
+    "id": "tutorial",
+    "lines": [
+      { "who": "story_narrator", "text": "story_tut_1" },
+      { "who": "story_narrator", "text": "story_tut_2" },
+      { "who": "unit_dingfeng_name", "text": "story_tut_3" },
+      { "who": "unit_dingfeng_name", "text": "story_tut_4" },
+      { "who": "story_narrator", "text": "story_tut_5" }
+    ]
+  },
+  {
+    "id": "lusu",
+    "lines": [
+      { "who": "story_narrator", "text": "story_lusu_1" },
+      { "who": "story_narrator", "text": "story_lusu_2" },
+      { "who": "unit_lusu_name", "text": "story_lusu_3" },
+      { "who": "story_narrator", "text": "story_lusu_4" }
+    ]
+  },
+  {
+    "id": "xiaoqiao",
+    "lines": [
+      { "who": "story_narrator", "text": "story_xq_1" },
+      { "who": "story_narrator", "text": "story_xq_2" },
+      { "who": "unit_xiaoqiao_name", "text": "story_xq_3" },
+      { "who": "story_narrator", "text": "story_xq_4" }
+    ]
+  }
+]

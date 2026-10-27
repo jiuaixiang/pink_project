@@ -1,5 +1,6 @@
 import { oops } from 'db://oops-framework/core/Oops';
 import { TableEnemies } from '../table/TableEnemies';
+import { TableEquips } from '../table/TableEquips';
 import { TableLevels } from '../table/TableLevels';
 import { TableUnits } from '../table/TableUnits';
 import { TableWaves } from '../table/TableWaves';
@@ -81,6 +82,92 @@ export class PlayerModel {
     /** 累计通关次数 */
     get totalClears(): number {
         return this.save.clears;
+    }
+
+    /** 无尽模式最高波数 */
+    get bestWave(): number {
+        return this.save.bestWave ?? 0;
+    }
+
+    /** 记录无尽模式成绩 */
+    recordEndless(wave: number): void {
+        const reached = Math.max(0, Math.floor(wave));
+        if (reached <= (this.save.bestWave ?? 0)) return;
+        this.save.bestWave = reached;
+        SaveService.save();
+        oops.message.dispatchEvent(GameEvent.SaveChanged);
+    }
+
+    /** 已获得的装备（背包） */
+    get bag(): string[] {
+        if (!Array.isArray(this.save.bag)) this.save.bag = [];
+        return this.save.bag;
+    }
+
+    /** 某武将的穿戴表 */
+    wearingOf(unitId: string): Record<string, string> {
+        if (this.save.wearing == null) this.save.wearing = {};
+        const worn = this.save.wearing[unitId];
+        if (worn == null) {
+            const created: Record<string, string> = {};
+            this.save.wearing[unitId] = created;
+            return created;
+        }
+        return worn;
+    }
+
+    /** 获得装备（重复的也入包，可给不同武将使用） */
+    addEquip(equipId: string): void {
+        this.bag.push(equipId);
+        SaveService.save();
+        oops.message.dispatchEvent(GameEvent.SaveChanged);
+    }
+
+    /** 穿戴：背包中移除一件，原装备退回背包 */
+    equipItem(unitId: string, equipId: string): boolean {
+        const index = this.bag.indexOf(equipId);
+        if (index < 0) return false;
+        const cfg = TableEquips.get(equipId);
+        if (cfg == null) return false;
+
+        const worn = this.wearingOf(unitId);
+        const previous = worn[cfg.slot];
+        this.bag.splice(index, 1);
+        if (previous != null) this.bag.push(previous);
+        worn[cfg.slot] = equipId;
+
+        SaveService.save();
+        oops.message.dispatchEvent(GameEvent.SaveChanged);
+        return true;
+    }
+
+    /** 卸下某槽位 */
+    unequip(unitId: string, slot: string): boolean {
+        const worn = this.wearingOf(unitId);
+        const equipId = worn[slot];
+        if (equipId == null) return false;
+
+        delete worn[slot];
+        this.bag.push(equipId);
+        SaveService.save();
+        oops.message.dispatchEvent(GameEvent.SaveChanged);
+        return true;
+    }
+
+    /** 汇总某武将的装备加成 */
+    statsOf(unitId: string): { atkPct: number; hpPct: number; aspd: number; critPct: number; cdReduce: number } {
+        const result = { atkPct: 0, hpPct: 0, aspd: 0, critPct: 0, cdReduce: 0 };
+        const worn = this.wearingOf(unitId);
+        for (const slot of Object.keys(worn)) {
+            const cfg = TableEquips.get(worn[slot]);
+            if (cfg == null) continue;
+            result.atkPct += cfg.atkPct ?? 0;
+            result.hpPct += cfg.hpPct ?? 0;
+            result.aspd += cfg.aspd ?? 0;
+            result.critPct += cfg.critPct ?? 0;
+            result.cdReduce += cfg.cdReduce ?? 0;
+        }
+        return result;
     }
 
     /** 新手引导是否已完成 */

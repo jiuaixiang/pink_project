@@ -57,7 +57,7 @@ export class LevelSelectViewComp extends GameComponent {
                 oops.gui.toast(ViewKit.lang('select_locked'));
                 return;
             }
-            AppNav.startBattle(this.selectedId);
+            AppNav.openDraft(this.selectedId);
         });
 
         this.selectedId = Math.max(1, Math.min(PlayerModel.inst.getContinueLevel(), PlayerModel.inst.unlocked));
@@ -151,11 +151,18 @@ export class LevelSelectViewComp extends GameComponent {
         ViewKit.text(detail, 'detail_name', ViewKit.levelName(level.id));
         ViewKit.text(detail, 'detail_index', `STAGE ${String(level.id).padStart(2, '0')}`);
 
-        const conditions = [
-            { done: stars >= 1, text: ViewKit.lang('select_star1') },
-            { done: stars >= 2, text: ViewKit.lang('select_star2', level.starTime) },
-            { done: stars >= 3, text: ViewKit.lang('select_star3') },
-        ];
+        const best = PlayerModel.inst.bestWave;
+        const conditions = level.endless === true
+            ? [
+                { done: best > 0, text: ViewKit.lang('endless_best', best) },
+                { done: false, text: ViewKit.lang('endless_rule') },
+                { done: false, text: ViewKit.lang('endless_hint') },
+            ]
+            : [
+                { done: stars >= 1, text: ViewKit.lang('select_star1') },
+                { done: stars >= 2, text: ViewKit.lang('select_star2', level.starTime) },
+                { done: stars >= 3, text: ViewKit.lang('select_star3') },
+            ];
         for (let i = 0; i < conditions.length; i++) {
             const cond = conditions[i];
             const path = `cond${i + 1}`;

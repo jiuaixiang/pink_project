@@ -81,9 +81,10 @@ export class CodexViewComp extends GameComponent {
             const item = await ViewKit.instantiatePrefab('gui/main/codex_item', list);
             if (item == null || !list.isValid) return;
 
-            const col = i % 3;
-            const row = Math.floor(i / 3);
-            item.setPosition(new Vec3(col * 244, -row * 76, 0));
+            // 23 名武将：4 列 × 6 行
+            const col = i % 4;
+            const row = Math.floor(i / 4);
+            item.setPosition(new Vec3((col - 1.5) * 190, 180 - row * 60, 0));
             this.fillItem(item, id);
             ViewKit.click(item, () => {
                 this.selectedId = id;
@@ -149,6 +150,9 @@ export class CodexViewComp extends GameComponent {
             if (unit.atk != null && unit.atk > 0) items.push({ key: ViewKit.lang('codex_atk'), value: String(unit.atk) });
             if (unit.interval != null) items.push({ key: ViewKit.lang('codex_interval'), value: `${unit.interval}s` });
             if (unit.produce != null) items.push({ key: ViewKit.lang('codex_produce'), value: `${unit.produce.value} / ${unit.produce.interval}s` });
+            if (unit.talent != null) {
+                items.push({ key: ViewKit.lang('codex_talent'), value: `${unit.talent.name} · ${unit.talent.cd}s` });
+            }
         }
         else {
             const enemy = config as IEnemyConfig;

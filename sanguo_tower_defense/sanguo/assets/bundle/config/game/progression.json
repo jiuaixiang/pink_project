@@ -1,0 +1,50 @@
+{
+  "enemyUnlock": {
+    "1": ["minfu", "yibing", "tuntian", "inf"],
+    "3": ["cav"],
+    "4": ["changqiang"],
+    "5": ["gongjian", "boss"],
+    "6": ["iron"],
+    "7": ["zhongqi"],
+    "8": ["nubing"],
+    "9": ["shield"],
+    "10": ["arch"],
+    "11": ["houqi"],
+    "12": ["zijun", "gongcheng", "pole", "shanyue"]
+  },
+  "debut": {
+    "minfu": 1,
+    "yibing": 1,
+    "tuntian": 1,
+    "inf": 1,
+    "cav": 3,
+    "changqiang": 4,
+    "gongjian": 5,
+    "boss": 5,
+    "iron": 6,
+    "zhongqi": 7,
+    "nubing": 8,
+    "shield": 9,
+    "arch": 10,
+    "houqi": 11,
+    "zijun": 12,
+    "gongcheng": 12,
+    "pole": 12,
+    "shanyue": 12
+  },
+  "poolIds": [
+    "dingfeng", "lusu", "xiaoqiao", "juma", "sunshangxiang",
+    "taishici", "huanggai", "wutugu", "luxun", "xuchu",
+    "ganing", "mengdai", "huangyueying", "zhangfei", "zhugeliang"
+  ],
+  "endlessUnlocks": {
+    "5": "xunyu",
+    "8": "zhangliao",
+    "11": "simayi",
+    "14": "caocao",
+    "17": "zhenji",
+    "20": "jiangwei",
+    "23": "pangtong",
+    "26": "dongzhuo"
+  }
+}

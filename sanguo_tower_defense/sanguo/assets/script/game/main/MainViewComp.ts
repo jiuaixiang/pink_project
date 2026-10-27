@@ -50,6 +50,8 @@ export class MainViewComp extends GameComponent {
 
         ViewKit.text(root, 'card_levels/title', ViewKit.lang('main_levels'));
         ViewKit.text(root, 'card_levels/tip', ViewKit.lang('main_levels_tip'));
+        ViewKit.text(root, 'card_equip/title', ViewKit.lang('main_equip'));
+        ViewKit.text(root, 'card_equip/tip', ViewKit.lang('main_equip_tip'));
         ViewKit.text(root, 'card_codex/title', ViewKit.lang('main_codex'));
         ViewKit.text(root, 'card_codex/tip', ViewKit.lang('main_codex_tip'));
         ViewKit.text(root, 'card_settings/title', ViewKit.lang('main_settings'));
@@ -59,11 +61,16 @@ export class MainViewComp extends GameComponent {
         ViewKit.visible(root, 'all_clear', allClear);
         if (allClear) ViewKit.text(root, 'all_clear', ViewKit.lang('main_all_clear'));
 
+        // 无尽最佳波数
+        const best = player.bestWave;
+        ViewKit.visible(root, 'best_wave', best > 0);
+        if (best > 0) ViewKit.text(root, 'best_wave', ViewKit.lang('main_best_wave', best));
+
         ViewKit.text(root, 'version', `${ViewKit.lang('app_version')} ${oops.config.game.version}`);
         ViewKit.text(root, 'lang', SettingsModel.inst.language === 'zh' ? '中文 / EN' : 'EN / 中文');
 
         // 逐块入场动画（只改变预制体节点的缩放）
-        const cards = ['btn_continue', 'card_levels', 'card_codex', 'card_settings'];
+        const cards = ['btn_continue', 'card_levels', 'card_equip', 'card_codex', 'card_settings'];
         for (const name of cards) {
             const node = ViewKit.get(root, name);
             if (node != null) ViewKit.popIn(node);
@@ -75,9 +82,10 @@ export class MainViewComp extends GameComponent {
         const root = this.node;
 
         ViewKit.click(ViewKit.get(root, 'btn_continue'), () => {
-            AppNav.startBattle(PlayerModel.inst.getContinueLevel());
+            AppNav.openDraft(PlayerModel.inst.getContinueLevel());
         });
         ViewKit.click(ViewKit.get(root, 'card_levels'), () => AppNav.openLevelSelect());
+        ViewKit.click(ViewKit.get(root, 'card_equip'), () => AppNav.openEquip());
         ViewKit.click(ViewKit.get(root, 'card_codex'), () => AppNav.openCodex());
         ViewKit.click(ViewKit.get(root, 'card_settings'), () => AppNav.openSettings());
 

@@ -1,6 +1,7 @@
 import { oops } from 'db://oops-framework/core/Oops';
 import { Battle } from '../../battle/Battle';
 import { UIID } from '../config/GameUIConfig';
+import { DraftModel } from '../model/DraftModel';
 
 /**
  * 界面导航
@@ -22,6 +23,20 @@ export class AppNav {
         this.openMain();
         if (oops.gui.has(UIID.LevelSelect)) return;
         oops.gui.open(UIID.LevelSelect);
+    }
+
+    /** 打开选将界面（进入战斗前的阵容选择） */
+    static openDraft(levelId: number): void {
+        DraftModel.setPending(levelId);
+        if (oops.gui.has(UIID.Draft)) oops.gui.remove(UIID.Draft);
+        oops.gui.open(UIID.Draft);
+    }
+
+    /** 打开装备界面 */
+    static openEquip(): void {
+        this.openMain();
+        if (oops.gui.has(UIID.Equip)) return;
+        oops.gui.open(UIID.Equip);
     }
 
     /** 打开图鉴 */
@@ -49,6 +64,10 @@ export class AppNav {
         this.removeIfOpen(UIID.Settings);
         this.removeIfOpen(UIID.LevelSelect);
         this.removeIfOpen(UIID.Codex);
+        this.removeIfOpen(UIID.Equip);
+        this.removeIfOpen(UIID.Draft);
+        this.removeIfOpen(UIID.Help);
+        this.removeIfOpen(UIID.Strat);
         this.removeIfOpen(UIID.Main);
         Battle.open(levelId);
     }
@@ -58,6 +77,8 @@ export class AppNav {
         this.removeIfOpen(UIID.Pause);
         this.removeIfOpen(UIID.Result);
         this.removeIfOpen(UIID.Settings);
+        this.removeIfOpen(UIID.Draft);
+        this.removeIfOpen(UIID.Equip);
         Battle.close();
         this.openMain();
     }

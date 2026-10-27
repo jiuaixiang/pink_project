@@ -2,6 +2,8 @@ import { _decorator, Node, Vec3, tween } from 'cc';
 import { oops } from 'db://oops-framework/core/Oops';
 import { GameComponent } from 'db://oops-framework/module/common/GameComponent';
 import { UIID } from '../../common/config/GameUIConfig';
+import { PlayerModel } from '../../common/model/PlayerModel';
+import { TableEquips } from '../../common/table/TableEquips';
 import { TableLevels } from '../../common/table/TableLevels';
 import { AppNav } from '../../common/ui/AppNav';
 import { ViewKit } from '../../common/ui/ViewKit';
@@ -34,7 +36,12 @@ export class ResultViewComp extends GameComponent {
         if (titleLabel != null) titleLabel.color = ViewKit.color(win ? '#C8A15A' : '#C0392B');
 
         ViewKit.text(root, 'panel/level_name', ViewKit.levelName(summary.levelId));
-        ViewKit.text(root, 'panel/time', ViewKit.lang('result_time', Math.round(summary.time)));
+        if (summary.wave != null) {
+            ViewKit.text(root, 'panel/time', ViewKit.lang('result_wave', summary.wave));
+        }
+        else {
+            ViewKit.text(root, 'panel/time', ViewKit.lang('result_time', Math.round(summary.time)));
+        }
 
         // 星级展示
         const starNames = ['panel/star1', 'panel/star2', 'panel/star3'];
@@ -60,6 +67,20 @@ export class ResultViewComp extends GameComponent {
         else {
             ViewKit.text(root, 'panel/unlock', ViewKit.lang('result_lose_tip'));
             ViewKit.visible(root, 'panel/unlock', true);
+        }
+
+        // 装备掉落 / 无尽最佳波数
+        if (summary.equip != null) {
+            const equip = TableEquips.get(summary.equip);
+            ViewKit.text(root, 'panel/drop', ViewKit.lang('result_equip_drop', equip != null ? ViewKit.lang(equip.nameKey) : summary.equip));
+            ViewKit.visible(root, 'panel/drop', true);
+        }
+        else if (summary.wave != null) {
+            ViewKit.text(root, 'panel/drop', ViewKit.lang('result_best', PlayerModel.inst.bestWave));
+            ViewKit.visible(root, 'panel/drop', true);
+        }
+        else {
+            ViewKit.visible(root, 'panel/drop', false);
         }
 
         // 按钮

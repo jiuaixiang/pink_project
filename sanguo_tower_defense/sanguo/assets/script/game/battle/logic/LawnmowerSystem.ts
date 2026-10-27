@@ -28,6 +28,8 @@ export class LawnmowerSystem {
             mower.used = true;
             mower.running = true;
             model.mowerUsed = true;
+            // 滚木触发后城门短暂无敌
+            model.gateInvuln = Math.max(model.gateInvuln, model.gameplay.mowerInvuln);
 
             for (const enemy of model.enemies) {
                 if (!enemy.alive || enemy.row !== mower.row) continue;

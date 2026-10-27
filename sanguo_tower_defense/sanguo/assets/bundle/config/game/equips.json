@@ -1,0 +1,22 @@
+[
+  { "id": "w1", "nameKey": "equip_w1_name", "descKey": "equip_w1_desc", "slot": "weapon", "tier": 1, "atkPct": 0.05 },
+  { "id": "w2", "nameKey": "equip_w2_name", "descKey": "equip_w2_desc", "slot": "weapon", "tier": 2, "atkPct": 0.1 },
+  { "id": "w3", "nameKey": "equip_w3_name", "descKey": "equip_w3_desc", "slot": "weapon", "tier": 3, "atkPct": 0.15, "critPct": 0.02 },
+  { "id": "w4", "nameKey": "equip_w4_name", "descKey": "equip_w4_desc", "slot": "weapon", "tier": 4, "atkPct": 0.2, "critPct": 0.04 },
+  { "id": "w5", "nameKey": "equip_w5_name", "descKey": "equip_w5_desc", "slot": "weapon", "tier": 5, "atkPct": 0.28, "critPct": 0.06 },
+  { "id": "a1", "nameKey": "equip_a1_name", "descKey": "equip_a1_desc", "slot": "armor", "tier": 1, "hpPct": 0.08 },
+  { "id": "a2", "nameKey": "equip_a2_name", "descKey": "equip_a2_desc", "slot": "armor", "tier": 2, "hpPct": 0.12 },
+  { "id": "a3", "nameKey": "equip_a3_name", "descKey": "equip_a3_desc", "slot": "armor", "tier": 3, "hpPct": 0.18 },
+  { "id": "a4", "nameKey": "equip_a4_name", "descKey": "equip_a4_desc", "slot": "armor", "tier": 4, "hpPct": 0.24 },
+  { "id": "a5", "nameKey": "equip_a5_name", "descKey": "equip_a5_desc", "slot": "armor", "tier": 5, "hpPct": 0.32 },
+  { "id": "h1", "nameKey": "equip_h1_name", "descKey": "equip_h1_desc", "slot": "horse", "tier": 1, "aspd": 0.04 },
+  { "id": "h2", "nameKey": "equip_h2_name", "descKey": "equip_h2_desc", "slot": "horse", "tier": 2, "aspd": 0.07 },
+  { "id": "h3", "nameKey": "equip_h3_name", "descKey": "equip_h3_desc", "slot": "horse", "tier": 3, "aspd": 0.1 },
+  { "id": "h4", "nameKey": "equip_h4_name", "descKey": "equip_h4_desc", "slot": "horse", "tier": 4, "aspd": 0.13 },
+  { "id": "h5", "nameKey": "equip_h5_name", "descKey": "equip_h5_desc", "slot": "horse", "tier": 5, "aspd": 0.16 },
+  { "id": "t1", "nameKey": "equip_t1_name", "descKey": "equip_t1_desc", "slot": "treasure", "tier": 1, "atkPct": 0.03, "hpPct": 0.03 },
+  { "id": "t2", "nameKey": "equip_t2_name", "descKey": "equip_t2_desc", "slot": "treasure", "tier": 2, "atkPct": 0.05, "hpPct": 0.05 },
+  { "id": "t3", "nameKey": "equip_t3_name", "descKey": "equip_t3_desc", "slot": "treasure", "tier": 3, "atkPct": 0.06, "hpPct": 0.06, "cdReduce": 0.2 },
+  { "id": "t4", "nameKey": "equip_t4_name", "descKey": "equip_t4_desc", "slot": "treasure", "tier": 4, "atkPct": 0.08, "hpPct": 0.08, "cdReduce": 0.35 },
+  { "id": "t5", "nameKey": "equip_t5_name", "descKey": "equip_t5_desc", "slot": "treasure", "tier": 5, "atkPct": 0.1, "hpPct": 0.1, "cdReduce": 0.5 }
+]

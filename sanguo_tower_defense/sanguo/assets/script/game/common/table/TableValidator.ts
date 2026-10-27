@@ -3,6 +3,7 @@ import { EnemyKind, ProjectileKind, UnitKind } from './ITable';
 import { TableEnemies } from './TableEnemies';
 import { TableGameplay } from './TableGameplay';
 import { TableLevels } from './TableLevels';
+import { TableProgression } from './TableProgression';
 import { TableProjectiles } from './TableProjectiles';
 import { TableUnits } from './TableUnits';
 import { TableWaves } from './TableWaves';
@@ -134,6 +135,12 @@ export class TableValidator {
                         this.add('units', cfg.id, '缺少光环参数，已回退为 +20% 攻击 / +25% 攻速');
                     }
                     break;
+                case UnitKind.Caster:
+                    if (cfg.talent == null || !(cfg.talent.cd > 0)) {
+                        cfg.talent = { id: 'roar', name: '咆哮', cd: 6, damage: 20 };
+                        this.add('units', cfg.id, '缺少天赋配置，已回退为咆哮');
+                    }
+                    break;
                 case UnitKind.Wall:
                     break;
                 default:
@@ -247,12 +254,25 @@ export class TableValidator {
             const cfg: IUnitConfig | null = TableUnits.get(unitId);
             if (cfg == null) this.add('levels', String(level.id), `卡片单位 ${unitId} 不存在`);
         }
-        if (!Array.isArray(level.waves) || level.waves.length === 0) {
+        // 无尽模式波次由程序生成，允许为空
+        if (level.endless !== true && (!Array.isArray(level.waves) || level.waves.length === 0)) {
             this.add('levels', String(level.id), '未配置波次');
             level.waves = [];
         }
         for (const waveId of level.waves) {
-            if (!TableWaves.has(waveId)) this.add('levels', String(level.id), `波次 ${waveId} 不存在`);
+            if (!TableWaves.has(waveId)) {
+                this.add('levels', String(level.id), `波次 ${waveId} 不存在`);
+                continue;
+            }
+            // 首见关卡校验：敌兵不应早于 debut 关卡出场（无尽模式除外）
+            if (level.endless === true) continue;
+            const wave = TableWaves.get(waveId);
+            for (const group of wave?.groups ?? []) {
+                const debut = TableProgression.debutLevel(group.enemy);
+                if (debut > 0 && level.id < debut) {
+                    this.add('levels', String(level.id), `敌兵 ${group.enemy} 首次登场应为第 ${debut} 关`);
+                }
+            }
         }
         if (!(level.initialFood >= 0)) {
             level.initialFood = 50;

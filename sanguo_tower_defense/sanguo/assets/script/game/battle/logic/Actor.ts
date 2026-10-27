@@ -25,6 +25,26 @@ export interface IUnitInst {
     auraSpeed: number;
     /** 受击闪白剩余时间 */
     hitFlash: number;
+    /** 天赋技冷却计时 */
+    talentTimer: number;
+    /** 攻击加成倍率（曹操奸雄等） */
+    atkBuffMul: number;
+    /** 攻击加成剩余时间 */
+    atkBuffTimer: number;
+    /** 承伤倍率（甄姬减伤） */
+    drMul: number;
+    /** 减伤剩余时间 */
+    drTimer: number;
+    /** 咀嚼 / 施法硬直剩余时间 */
+    chewTimer: number;
+    /** 是否已触发涅槃 */
+    revived: boolean;
+    /** 实际支付粮草（撤退返还用） */
+    paid: number;
+    /** 装备加成：攻击 / 攻速 / 暴击率 */
+    equipAtk: number;
+    equipAspd: number;
+    equipCrit: number;
     alive: boolean;
 }
 
@@ -48,6 +68,18 @@ export interface IEnemyInst {
     slowFactor: number;
     /** 是否已使用跳跃 / 掘地越过阻碍 */
     jumped: boolean;
+    /** 眩晕剩余时间（姜维伏兵） */
+    stunTimer: number;
+    /** 挖壕层数（工程兵，每层减伤 20%） */
+    digLayers: number;
+    /** 挖壕计时 */
+    digTimer: number;
+    /** 远程攻击计时（抛射 / 行进射击） */
+    shootTimer: number;
+    /** 是否已触发怯战 */
+    hesitated: boolean;
+    /** 是否已使用冲锋首击 */
+    charged: boolean;
     /** 受击闪白剩余时间 */
     hitFlash: number;
     alive: boolean;
@@ -70,6 +102,12 @@ export interface IProjectileInst {
     damage: number;
     slow: number;
     slowDuration: number;
+    /** 是否贯穿整行（命中后不消失） */
+    pierce: boolean;
+    /** 已命中的敌军 uid，避免贯穿弹重复伤害同一目标 */
+    hitUids: number[];
+    /** 是否暴击（飘字用红色） */
+    crit: boolean;
     alive: boolean;
 }
 
@@ -100,7 +138,7 @@ export interface IMower {
 }
 
 /** 战斗表现事件（由视图层消费，逻辑层不直接操作节点） */
-export type BattleEffectKind = 'damage' | 'explosion' | 'mower' | 'bigwave' | 'breach' | 'shoot' | 'food';
+export type BattleEffectKind = 'damage' | 'explosion' | 'mower' | 'bigwave' | 'breach' | 'shoot' | 'food' | 'gate' | 'shout' | 'die';
 
 export interface IBattleEffect {
     kind: BattleEffectKind;

@@ -9,22 +9,70 @@
 
 /** 武将 / 器械行为类型 */
 export enum UnitKind {
-    /** 产出军粮（桃园义士） */
+    /** 产出军粮（鲁肃、荀彧） */
     Producer = 'producer',
-    /** 直线射击（弓弩手、连弩营、寒冰弓手） */
+    /** 直线射击（丁奉、孙尚香、小乔、太史慈、马岱） */
     Shooter = 'shooter',
-    /** 纯阻挡（藤甲兵、铁壁盾卫） */
+    /** 纯阻挡（拒马、兀突骨、庞统） */
     Wall = 'wall',
-    /** 一次性范围爆炸（火油罐） */
+    /** 一次性范围爆炸（保留，当前阵容改由天赋实现） */
     Bomber = 'bomber',
-    /** 整行清场（烈火战车） */
+    /** 整行清场（陆逊·火烧连营） */
     RowClear = 'rowclear',
-    /** 同排光环增益（战鼓吏） */
+    /** 同排光环增益（保留扩展位） */
     Support = 'support',
-    /** 埋设陷阱（陷阵营） */
+    /** 埋设陷阱（保留扩展位） */
     Mine = 'mine',
-    /** 抛射溅射（投石车） */
+    /** 抛射溅射（黄月英） */
     Lobber = 'lobber',
+    /** 天赋技施法者：不普攻，按天赋冷却施放 */
+    Caster = 'caster',
+}
+
+/** 天赋技类型 */
+export enum TalentKind {
+    /** 兵刃伤害 */
+    Blade = 'blade',
+    /** 谋略伤害 / 场域 */
+    Magic = 'magic',
+    /** 增益 / 治疗 / 召唤 */
+    Buff = 'buff',
+    /** 被动（不主动施放） */
+    Passive = 'passive',
+}
+
+/** 武将天赋配置（对应 game-config.js 的 talent 字段） */
+export interface ITalentConfig {
+    /** 天赋键：决定施法逻辑 */
+    id: string;
+    /** 天赋名（展示用） */
+    name: string;
+    /** 冷却（秒） */
+    cd: number;
+    /** 类型 */
+    dtype?: TalentKind;
+    /** 伤害值（留空则取 unit.damage） */
+    damage?: number;
+    /** 作用半径 / 范围（格） */
+    radius?: number;
+    /** 增益持续时间（秒） */
+    duration?: number;
+    /** 减速比例 */
+    slow?: number;
+    /** 减速持续（秒） */
+    slowT?: number;
+    /** 击退距离（格） */
+    knock?: number;
+    /** 产粮量 */
+    yield?: number;
+    /** 治疗比例（0.15 = 15%） */
+    heal?: number;
+    /** 攻击加成（0.25 = +25%） */
+    atkBuff?: number;
+    /** 减伤比例（0.2 = 减伤 20%） */
+    dr?: number;
+    /** 眩晕时长（秒） */
+    stun?: number;
 }
 
 /** 敌军行为类型（仅用于图鉴分类与特殊表现，实际行为由字段驱动） */
@@ -95,6 +143,14 @@ export interface IUnitConfig {
     auraSpeed?: number;
     /** 抛射溅射半径（格） */
     splash?: number;
+    /** 反伤：被啃咬时每秒反弹给攻击者的伤害（兀突骨尖刺） */
+    thorns?: number;
+    /** 弹道是否贯穿整行（马岱回旋镖） */
+    pierce?: boolean;
+    /** 引信时间（秒），爆炸类单位落地后倒计时 */
+    fuse?: number;
+    /** 天赋技配置 */
+    talent?: ITalentConfig;
 }
 
 /** 敌军配置 */
@@ -124,6 +180,36 @@ export interface IEnemyConfig {
     bypassWall?: boolean;
     /** 是否可跳过第一个阻挡单位（飞骑） */
     jump?: boolean;
+    /** 是否从场内空降登场（斥候） */
+    sky?: boolean;
+    /** 被击杀时劫获的军粮（民夫 / 辎重车） */
+    loot?: number;
+    /** 受伤系数（0.7 表示只承受 70% 伤害） */
+    dmgMul?: number;
+    /** 首次受击怯战时长（秒，每名敌军一次） */
+    hesitate?: number;
+    /** 挖壕：无阻挡时每隔固定时间叠加减伤层（工程兵） */
+    dig?: boolean;
+    /** 远程抛射（弓箭兵）：推进到距城 range 格停驻，每 interval 秒抛射最靠城的武将 */
+    lob?: IEnemyRanged;
+    /** 行进射击（弩兵 / 骑射） */
+    shoot?: IEnemyRanged;
+    /** 跃越阻挡后的首击伤害（冲锋） */
+    charge?: number;
+    /** 跃越阻挡时对越过目标的践踏伤害 */
+    stomp?: number;
+}
+
+/** 敌方远程攻击参数 */
+export interface IEnemyRanged {
+    /** 单次伤害 */
+    damage: number;
+    /** 间隔（秒） */
+    interval: number;
+    /** 连发数（默认 1） */
+    volley?: number;
+    /** 停驻距离（格，仅 lob 使用） */
+    range?: number;
 }
 
 /** 弹道飞行方式 */
@@ -208,6 +294,89 @@ export interface ILevelConfig {
     prePlants?: IPrePlantConfig[];
     /** 是否启用新手引导 */
     guide?: boolean;
+    /** 关卡提示文案 */
+    tip?: string;
+    /** 地形限制：不可部署的行 */
+    terrain?: ILevelTerrain;
+    /** 夜间关：军粮产出 -30% */
+    night?: boolean;
+    /** 浓雾关：右侧两列视觉遮蔽 */
+    fog?: boolean;
+    /** 墓碑格（不可部署）：[row, col] */
+    graves?: number[][];
+    /** 关末主将名（仅展示） */
+    bossName?: string;
+    /** 无尽模式：波次程序生成，无胜利条件 */
+    endless?: boolean;
+}
+
+/** 关卡地形限制 */
+export interface ILevelTerrain {
+    /** 高山：不可部署的行 */
+    mountain?: number[];
+    /** 河流：不可部署的行 */
+    river?: number[];
+}
+
+/** 剧情台词 */
+export interface IStoryLine {
+    /** 说话人语言键（旁白用 story_narrator） */
+    who: string;
+    /** 台词语言键 */
+    text: string;
+}
+
+/** 剧情段 */
+export interface IStoryConfig {
+    id: string;
+    lines: IStoryLine[];
+}
+
+/** 装备槽位 */
+export enum EquipSlot {
+    Weapon = 'weapon',
+    Armor = 'armor',
+    Horse = 'horse',
+    Treasure = 'treasure',
+}
+
+/** 装备配置 */
+export interface IEquipConfig {
+    id: string;
+    nameKey: string;
+    descKey: string;
+    slot: EquipSlot;
+    /** 品阶 1~5 */
+    tier: number;
+    /** 攻击加成 */
+    atkPct?: number;
+    /** 生命加成 */
+    hpPct?: number;
+    /** 攻速加成 */
+    aspd?: number;
+    /** 暴击率 */
+    critPct?: number;
+    /** 部署冷却缩减（秒） */
+    cdReduce?: number;
+}
+
+/** 羁缘效果 */
+export interface IBondEffect {
+    /** 攻击加成 */
+    atk?: number;
+    /** 攻速加成 */
+    aspd?: number;
+    /** 生命加成（部署时生效） */
+    hp?: number;
+}
+
+/** 羁缘配置 */
+export interface IBondConfig {
+    id: string;
+    nameKey: string;
+    /** 需要的武将 id */
+    members: string[];
+    effect: IBondEffect;
 }
 
 /** 全局玩法配置 */
@@ -230,8 +399,31 @@ export interface IGameplayConfig {
     mowerOffset: number;
     /** 敌军出生点（格） */
     spawnX: number;
-    /** 敌军越过该位置即触发拒马 / 失败（格） */
+    /** 敌军越过该位置即触发拒马 / 扣城门耐久（格） */
     dangerX: number;
+    /** 城门耐久（敌军贴墙一次扣 1，Boss 扣 5，归零判负） */
+    gateHp: number;
+
+    /** 连击窗口（秒） */
+    comboWindow: number;
+    /** 触发连击所需击杀数 */
+    comboKills: number;
+    /** 连击奖励军粮 */
+    comboReward: number;
+    /** 拒马触发后城门无敌时长（秒） */
+    mowerInvuln: number;
+    /** 撤退返还比例 */
+    refundRate: number;
+    /** 同名武将重复上阵的涨价比例 */
+    repeatCostMul: number;
+    /** 夜间关军粮产出系数 */
+    nightFoodMul: number;
+    /** 击杀基础掉粮 */
+    killGold: number;
+    /** 教学关敌军生命系数（参考稿 0.6） */
+    tutEnemyHp: number;
+    /** 通关掉落装备的概率 */
+    equipDropRate: number;
 }
 
 /** 表间校验结果 */

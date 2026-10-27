@@ -1,363 +1,1212 @@
 [
   {
     "id": "l1_1",
-    "at": 20,
-    "groups": [{ "enemy": "turban", "row": 2, "count": 2, "interval": 5 }]
+    "at": 6,
+    "groups": [
+      {
+        "enemy": "minfu",
+        "row": 2,
+        "count": 1,
+        "interval": 0
+      }
+    ]
   },
   {
     "id": "l1_2",
-    "at": 55,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 3, "interval": 4 }]
+    "at": 42,
+    "groups": [
+      {
+        "enemy": "yibing",
+        "row": -1,
+        "count": 3,
+        "interval": 4
+      }
+    ]
   },
   {
     "id": "l1_3",
-    "at": 95,
+    "at": 82,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 4, "interval": 3 },
-      { "enemy": "banner", "row": 2, "count": 1, "interval": 0, "delay": 2 }
+      {
+        "enemy": "tuntian",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 2,
+        "interval": 4,
+        "delay": 2
+      }
     ]
   },
   {
     "id": "l2_1",
     "at": 20,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 3, "interval": 5 }]
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 3,
+        "interval": 5
+      }
+    ]
   },
   {
     "id": "l2_2",
     "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 3, "interval": 4 },
-      { "enemy": "banner", "row": -1, "count": 1, "interval": 0, "delay": 3 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 3,
+        "interval": 4
+      },
+      {
+        "enemy": "yibing",
+        "row": -1,
+        "count": 2,
+        "interval": 3,
+        "delay": 2
+      }
     ]
   },
   {
     "id": "l2_3",
     "at": 95,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 3 }]
+    "groups": [
+      {
+        "enemy": "tuntian",
+        "row": -1,
+        "count": 4,
+        "interval": 3
+      }
+    ]
   },
   {
     "id": "l2_4",
     "at": 135,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 5, "interval": 2.5 },
-      { "enemy": "banner", "row": -1, "count": 1, "interval": 0, "delay": 1 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 2.5
+      },
+      {
+        "enemy": "yibing",
+        "row": -1,
+        "count": 3,
+        "interval": 2,
+        "delay": 1
+      }
     ]
   },
   {
     "id": "l3_1",
     "at": 20,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 4, "interval": 5 }]
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 5
+      }
+    ]
   },
   {
     "id": "l3_2",
     "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 4, "interval": 4 },
-      { "enemy": "banner", "row": -1, "count": 1, "interval": 0, "delay": 3 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 3,
+        "interval": 4
+      },
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 1,
+        "interval": 0,
+        "delay": 3
+      }
     ]
   },
   {
     "id": "l3_3",
     "at": 95,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 6, "interval": 3 }]
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 3
+      },
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 1,
+        "interval": 0,
+        "delay": 2
+      }
+    ]
   },
   {
     "id": "l3_4",
     "at": 135,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 2.5 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 3 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 2.5
+      },
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 2,
+        "interval": 2,
+        "delay": 1
+      }
     ]
   },
   {
     "id": "l4_1",
     "at": 20,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 4, "interval": 4.5 }]
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 5
+      }
+    ]
   },
   {
     "id": "l4_2",
-    "at": 50,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 4 }]
+    "at": 55,
+    "groups": [
+      {
+        "enemy": "changqiang",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 3,
+        "interval": 4,
+        "delay": 1
+      }
+    ]
   },
   {
     "id": "l4_3",
-    "at": 85,
+    "at": 95,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3 },
-      { "enemy": "banner", "row": -1, "count": 1, "interval": 0, "delay": 5 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 3
+      },
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 2,
+        "interval": 2
+      }
     ]
   },
   {
     "id": "l4_4",
-    "at": 120,
+    "at": 135,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.4 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 3, "delay": 1 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 2.5
+      },
+      {
+        "enemy": "changqiang",
+        "row": -1,
+        "count": 2,
+        "interval": 3,
+        "delay": 1
+      },
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 1,
+        "interval": 0,
+        "delay": 3
+      }
     ]
   },
   {
     "id": "l5_1",
     "at": 20,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 4 }]
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 5
+      },
+      {
+        "enemy": "gongjian",
+        "row": -1,
+        "count": 1,
+        "interval": 0,
+        "delay": 3
+      }
+    ]
   },
   {
     "id": "l5_2",
-    "at": 50,
+    "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 5, "interval": 3.5 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+      {
+        "enemy": "gongjian",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 4
+      }
     ]
   },
   {
     "id": "l5_3",
-    "at": 85,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 7, "interval": 3 }]
+    "at": 95,
+    "groups": [
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 3
+      }
+    ]
   },
   {
     "id": "l5_4",
-    "at": 120,
+    "at": 145,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 7, "interval": 2.2 },
-      { "enemy": "banner", "row": -1, "count": 3, "interval": 2.5 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 2.5
+      },
+      {
+        "enemy": "gongjian",
+        "row": 2,
+        "count": 2,
+        "interval": 3
+      },
+      {
+        "enemy": "boss",
+        "row": 2,
+        "count": 1,
+        "interval": 0,
+        "delay": 4
+      }
     ]
   },
   {
     "id": "l6_1",
     "at": 20,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 4 }]
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 5
+      }
+    ]
   },
   {
     "id": "l6_2",
-    "at": 50,
+    "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 5, "interval": 3.5 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 2,
+        "interval": 5
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 4,
+        "delay": 1
+      }
     ]
   },
   {
     "id": "l6_3",
-    "at": 85,
+    "at": 95,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3 },
-      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 2,
+        "interval": 3
+      }
     ]
   },
   {
     "id": "l6_4",
-    "at": 120,
+    "at": 145,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
-      { "enemy": "iron", "row": -1, "count": 2, "interval": 5 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 3 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 2.5
+      },
+      {
+        "enemy": "iron",
+        "row": 3,
+        "count": 3,
+        "interval": 3
+      },
+      {
+        "enemy": "gongjian",
+        "row": -1,
+        "count": 1,
+        "interval": 0,
+        "delay": 2
+      }
     ]
   },
   {
     "id": "l7_1",
     "at": 20,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 5, "interval": 4 }]
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 5
+      },
+      {
+        "enemy": "zhongqi",
+        "row": -1,
+        "count": 1,
+        "interval": 0,
+        "delay": 3
+      }
+    ]
   },
   {
     "id": "l7_2",
-    "at": 50,
+    "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.5 },
-      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      },
+      {
+        "enemy": "zhongqi",
+        "row": -1,
+        "count": 1,
+        "interval": 0,
+        "delay": 2
+      }
     ]
   },
   {
     "id": "l7_3",
-    "at": 85,
+    "at": 95,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 7, "interval": 3 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "zhongqi",
+        "row": -1,
+        "count": 2,
+        "interval": 2,
+        "delay": 1
+      }
     ]
   },
   {
     "id": "l7_4",
-    "at": 120,
+    "at": 145,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
-      { "enemy": "iron", "row": -1, "count": 3, "interval": 4 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 3 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 2.5
+      },
+      {
+        "enemy": "zhongqi",
+        "row": 2,
+        "count": 2,
+        "interval": 2
+      },
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 2,
+        "interval": 3,
+        "delay": 2
+      }
     ]
   },
   {
     "id": "l8_1",
     "at": 20,
-    "groups": [{ "enemy": "turban", "row": -1, "count": 6, "interval": 3.6 }]
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 5
+      },
+      {
+        "enemy": "nubing",
+        "row": -1,
+        "count": 2,
+        "interval": 4,
+        "delay": 2
+      }
+    ]
   },
   {
     "id": "l8_2",
-    "at": 50,
+    "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.4 },
-      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+      {
+        "enemy": "nubing",
+        "row": -1,
+        "count": 3,
+        "interval": 4
+      },
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 2,
+        "interval": 3
+      }
     ]
   },
   {
     "id": "l8_3",
-    "at": 85,
+    "at": 95,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.8 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 4,
+        "interval": 2.5
+      },
+      {
+        "enemy": "nubing",
+        "row": -1,
+        "count": 2,
+        "interval": 3,
+        "delay": 1
+      }
     ]
   },
   {
     "id": "l8_4",
-    "at": 120,
+    "at": 145,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
-      { "enemy": "iron", "row": -1, "count": 3, "interval": 4 },
-      { "enemy": "banner", "row": -1, "count": 3, "interval": 3 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 2.5
+      },
+      {
+        "enemy": "nubing",
+        "row": 2,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "zhongqi",
+        "row": -1,
+        "count": 1,
+        "interval": 0,
+        "delay": 3
+      }
     ]
   },
   {
     "id": "l9_1",
     "at": 20,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.4 },
-      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 5
+      },
+      {
+        "enemy": "shield",
+        "row": -1,
+        "count": 2,
+        "interval": 5,
+        "delay": 2
+      }
     ]
   },
   {
     "id": "l9_2",
-    "at": 50,
+    "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 4, "interval": 3 },
-      { "enemy": "iron", "row": -1, "count": 4, "interval": 4 }
+      {
+        "enemy": "shield",
+        "row": -1,
+        "count": 3,
+        "interval": 4
+      },
+      {
+        "enemy": "gongjian",
+        "row": -1,
+        "count": 2,
+        "interval": 3
+      }
     ]
   },
   {
     "id": "l9_3",
-    "at": 85,
+    "at": 95,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3 },
-      { "enemy": "iron", "row": -1, "count": 3, "interval": 5 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 4 }
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 4,
+        "interval": 2.5
+      },
+      {
+        "enemy": "shield",
+        "row": -1,
+        "count": 2,
+        "interval": 3
+      }
     ]
   },
   {
     "id": "l9_4",
-    "at": 120,
+    "at": 150,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
-      { "enemy": "iron", "row": -1, "count": 5, "interval": 3 },
-      { "enemy": "banner", "row": -1, "count": 2, "interval": 3 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 2.5
+      },
+      {
+        "enemy": "shield",
+        "row": 2,
+        "count": 3,
+        "interval": 3
+      },
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 2,
+        "interval": 3,
+        "delay": 2
+      }
     ]
   },
   {
     "id": "l10_1",
     "at": 20,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.4 },
-      { "enemy": "cavalry", "row": -1, "count": 2, "interval": 6 }
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 2,
+        "interval": 5
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 4
+      }
     ]
   },
   {
     "id": "l10_2",
-    "at": 50,
+    "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.2 },
-      { "enemy": "iron", "row": -1, "count": 2, "interval": 6 }
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 3,
+        "interval": 4
+      },
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 2,
+        "interval": 3
+      }
     ]
   },
   {
     "id": "l10_3",
-    "at": 85,
+    "at": 95,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 2.8 },
-      { "enemy": "cavalry", "row": -1, "count": 4, "interval": 4 }
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 4,
+        "interval": 2.5
+      },
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 2,
+        "interval": 3,
+        "delay": 1
+      }
     ]
   },
   {
     "id": "l10_4",
-    "at": 120,
+    "at": 150,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
-      { "enemy": "iron", "row": -1, "count": 3, "interval": 4 },
-      { "enemy": "cavalry", "row": -1, "count": 4, "interval": 4 }
+      {
+        "enemy": "arch",
+        "row": 2,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 2.5
+      },
+      {
+        "enemy": "boss",
+        "row": 2,
+        "count": 1,
+        "interval": 0,
+        "delay": 5
+      }
     ]
   },
   {
     "id": "l11_1",
     "at": 20,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.4 },
-      { "enemy": "digger", "row": -1, "count": 2, "interval": 6 }
+      {
+        "enemy": "houqi",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 4
+      }
     ]
   },
   {
     "id": "l11_2",
-    "at": 50,
+    "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.2 },
-      { "enemy": "shield", "row": -1, "count": 4, "interval": 5 }
+      {
+        "enemy": "houqi",
+        "row": -1,
+        "count": 3,
+        "interval": 3.5
+      },
+      {
+        "enemy": "shield",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      }
     ]
   },
   {
     "id": "l11_3",
-    "at": 85,
+    "at": 95,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 2.8 },
-      { "enemy": "cavalry", "row": -1, "count": 2, "interval": 5 },
-      { "enemy": "digger", "row": -1, "count": 3, "interval": 4 }
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 3,
+        "interval": 3
+      },
+      {
+        "enemy": "houqi",
+        "row": -1,
+        "count": 2,
+        "interval": 3
+      },
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 2,
+        "interval": 2.5
+      }
     ]
   },
   {
     "id": "l11_4",
-    "at": 120,
+    "at": 155,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.2 },
-      { "enemy": "shield", "row": -1, "count": 4, "interval": 4 },
-      { "enemy": "iron", "row": -1, "count": 2, "interval": 5 }
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 2.5
+      },
+      {
+        "enemy": "houqi",
+        "row": 2,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 2,
+        "interval": 3,
+        "delay": 2
+      }
     ]
   },
   {
     "id": "l12_1",
     "at": 20,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3.2 },
-      { "enemy": "iron", "row": -1, "count": 2, "interval": 5 }
+      {
+        "enemy": "gongcheng",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 4
+      }
     ]
   },
   {
     "id": "l12_2",
-    "at": 50,
+    "at": 55,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 6, "interval": 3 },
-      { "enemy": "shield", "row": -1, "count": 3, "interval": 5 },
-      { "enemy": "cavalry", "row": -1, "count": 2, "interval": 6 }
+      {
+        "enemy": "zijun",
+        "row": -1,
+        "count": 1,
+        "interval": 0
+      },
+      {
+        "enemy": "shield",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 4,
+        "interval": 3,
+        "delay": 1
+      }
     ]
   },
   {
     "id": "l12_3",
-    "at": 85,
+    "at": 100,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 8, "interval": 2.6 },
-      { "enemy": "iron", "row": -1, "count": 4, "interval": 4 },
-      { "enemy": "digger", "row": -1, "count": 3, "interval": 4 }
+      {
+        "enemy": "pole",
+        "row": -1,
+        "count": 2,
+        "interval": 3.5
+      },
+      {
+        "enemy": "shanyue",
+        "row": -1,
+        "count": 2,
+        "interval": 3.5
+      },
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 2,
+        "interval": 3
+      }
     ]
   },
   {
     "id": "l12_4",
-    "at": 130,
+    "at": 160,
     "big": true,
     "groups": [
-      { "enemy": "turban", "row": -1, "count": 10, "interval": 2 },
-      { "enemy": "shield", "row": -1, "count": 4, "interval": 3.5 },
-      { "enemy": "cavalry", "row": -1, "count": 2, "interval": 4 },
-      { "enemy": "ram", "row": -1, "count": 1, "interval": 0, "delay": 4 }
+      {
+        "enemy": "pole",
+        "row": 1,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "shanyue",
+        "row": 3,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "zhongqi",
+        "row": -1,
+        "count": 2,
+        "interval": 2
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 2,
+        "delay": 2
+      },
+      {
+        "enemy": "boss",
+        "row": 2,
+        "count": 1,
+        "interval": 0,
+        "delay": 4
+      }
+    ]
+  },
+  {
+    "id": "l13_1",
+    "at": 20,
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 5,
+        "interval": 4
+      },
+      {
+        "enemy": "shield",
+        "row": -1,
+        "count": 3,
+        "interval": 4,
+        "delay": 1
+      }
+    ]
+  },
+  {
+    "id": "l13_2",
+    "at": 60,
+    "groups": [
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 3,
+        "interval": 4
+      },
+      {
+        "enemy": "changqiang",
+        "row": -1,
+        "count": 3,
+        "interval": 3
+      }
+    ]
+  },
+  {
+    "id": "l13_3",
+    "at": 100,
+    "groups": [
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 3,
+        "interval": 3
+      },
+      {
+        "enemy": "zhongqi",
+        "row": -1,
+        "count": 2,
+        "interval": 2.5
+      }
+    ]
+  },
+  {
+    "id": "l13_4",
+    "at": 150,
+    "big": true,
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 2.5
+      },
+      {
+        "enemy": "zhongqi",
+        "row": 2,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 2,
+        "interval": 3,
+        "delay": 2
+      }
+    ]
+  },
+  {
+    "id": "l14_1",
+    "at": 20,
+    "groups": [
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 4
+      },
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 3,
+        "interval": 3.5,
+        "delay": 1
+      }
+    ]
+  },
+  {
+    "id": "l14_2",
+    "at": 60,
+    "groups": [
+      {
+        "enemy": "pole",
+        "row": 1,
+        "count": 2,
+        "interval": 3.5
+      },
+      {
+        "enemy": "shanyue",
+        "row": 3,
+        "count": 3,
+        "interval": 3
+      },
+      {
+        "enemy": "shield",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      }
+    ]
+  },
+  {
+    "id": "l14_3",
+    "at": 100,
+    "groups": [
+      {
+        "enemy": "houqi",
+        "row": -1,
+        "count": 3,
+        "interval": 3
+      },
+      {
+        "enemy": "cav",
+        "row": -1,
+        "count": 4,
+        "interval": 2.5
+      }
+    ]
+  },
+  {
+    "id": "l14_4",
+    "at": 155,
+    "big": true,
+    "groups": [
+      {
+        "enemy": "zhongqi",
+        "row": 2,
+        "count": 3,
+        "interval": 2.5
+      },
+      {
+        "enemy": "pole",
+        "row": 1,
+        "count": 2,
+        "interval": 3
+      },
+      {
+        "enemy": "shanyue",
+        "row": 3,
+        "count": 2,
+        "interval": 3
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 2,
+        "delay": 1
+      }
+    ]
+  },
+  {
+    "id": "l15_1",
+    "at": 20,
+    "groups": [
+      {
+        "enemy": "gongcheng",
+        "row": -1,
+        "count": 2,
+        "interval": 4
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 4
+      }
+    ]
+  },
+  {
+    "id": "l15_2",
+    "at": 60,
+    "groups": [
+      {
+        "enemy": "zijun",
+        "row": -1,
+        "count": 1,
+        "interval": 0
+      },
+      {
+        "enemy": "shield",
+        "row": -1,
+        "count": 3,
+        "interval": 4
+      },
+      {
+        "enemy": "iron",
+        "row": -1,
+        "count": 2,
+        "interval": 4,
+        "delay": 1
+      }
+    ]
+  },
+  {
+    "id": "l15_3",
+    "at": 105,
+    "groups": [
+      {
+        "enemy": "pole",
+        "row": -1,
+        "count": 3,
+        "interval": 3
+      },
+      {
+        "enemy": "arch",
+        "row": -1,
+        "count": 3,
+        "interval": 3
+      },
+      {
+        "enemy": "houqi",
+        "row": -1,
+        "count": 2,
+        "interval": 3
+      }
+    ]
+  },
+  {
+    "id": "l15_4",
+    "at": 170,
+    "big": true,
+    "groups": [
+      {
+        "enemy": "boss",
+        "row": 2,
+        "count": 1,
+        "interval": 0
+      },
+      {
+        "enemy": "zhongqi",
+        "row": 2,
+        "count": 3,
+        "interval": 2.5,
+        "delay": 2
+      },
+      {
+        "enemy": "shanyue",
+        "row": 3,
+        "count": 3,
+        "interval": 2.5,
+        "delay": 2
+      },
+      {
+        "enemy": "pole",
+        "row": 1,
+        "count": 3,
+        "interval": 2.5,
+        "delay": 2
+      },
+      {
+        "enemy": "inf",
+        "row": -1,
+        "count": 6,
+        "interval": 2,
+        "delay": 4
+      }
     ]
   }
 ]

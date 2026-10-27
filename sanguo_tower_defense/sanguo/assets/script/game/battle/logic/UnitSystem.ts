@@ -5,6 +5,7 @@ import type { BattleModel } from './BattleModel';
 import { Combat } from './Combat';
 import { EconomySystem } from './EconomySystem';
 import { ProjectileSystem } from './ProjectileSystem';
+import { TalentSystem } from './TalentSystem';
 
 /**
  * 武将系统
@@ -20,6 +21,9 @@ export class UnitSystem {
         for (const unit of model.units) {
             if (!unit.alive) continue;
             if (unit.hitFlash > 0) unit.hitFlash -= dt;
+
+            // 天赋与增益统一计时（含 buff 衰减）
+            TalentSystem.update(model, unit, dt);
 
             const cfg = unit.cfg;
             switch (cfg.kind) {
@@ -40,13 +44,16 @@ export class UnitSystem {
                 case UnitKind.Wall:
                 case UnitKind.Support:
                     break;
+                case UnitKind.Caster:
+                    // 只施放天赋，不做普攻
+                    break;
                 default:
                     break;
             }
         }
     }
 
-    /** 光环：战鼓吏提升同排单位的攻击力与攻速（多鼓可叠加） */
+    /** 光环：为同排单位提供攻击力与攻速加成（保留扩展位，当前阵容未使用） */
     private static applyAura(model: BattleModel): void {
         for (const unit of model.units) {
             unit.auraAtk = 0;
@@ -80,47 +87,58 @@ export class UnitSystem {
 
     private static updateShooter(model: BattleModel, unit: IUnitInst, dt: number): void {
         const cfg = unit.cfg;
-        const interval = Math.max(0.2, (cfg.interval ?? 1.4) / (1 + unit.auraSpeed));
+        const interval = Math.max(0.2, (cfg.interval ?? 1.4) / (1 + unit.auraSpeed + model.bondAspd + unit.equipAspd));
 
         unit.attackTimer -= dt;
         if (unit.attackTimer > 0) return;
 
-        const target = this.findTarget(model, unit);
-        if (target == null) {
+        // 三排武将（床弩/太史慈/司马懿）对每排各自索敌，各自出一发
+        const span = cfg.rows ?? 1;
+        const lanes = span >= 3 ? [unit.row - 1, unit.row, unit.row + 1] : [unit.row];
+
+        let fired = false;
+        // 攻击力 = 基础 × 光环 × 增伤 buff × 羁缘 × 装备
+        const damage = (cfg.atk ?? 0) * (1 + unit.auraAtk + model.bondAtk + unit.equipAtk) * unit.atkBuffMul;
+        const volley = Math.max(1, cfg.volley ?? 1);
+        const projectile = cfg.projectile ?? 'arrow';
+        const pierce = cfg.pierce === true;
+
+        for (const lane of lanes) {
+            if (lane < 0 || lane >= model.grid.rows) continue;
+            const target = this.findTarget(model, unit, lane);
+            if (target == null) continue;
+
+            if (cfg.kind === UnitKind.Lobber) {
+                ProjectileSystem.spawnArc(model, lane, model.grid.colCenter(unit.col), target.x, projectile, damage);
+                fired = true;
+                continue;
+            }
+
+            for (let i = 0; i < volley; i++) {
+                // 暴击按每发独立判定（装备提供）
+                const crit = unit.equipCrit > 0 && Math.random() < unit.equipCrit;
+                const startX = model.grid.colCenter(unit.col) + 0.35 - i * 0.22;
+                ProjectileSystem.spawnLine(
+                    model, lane, startX, projectile, crit ? damage * 1.5 : damage,
+                    cfg.slowFactor ?? 0, cfg.slowDuration ?? 0, pierce, crit,
+                );
+            }
+            fired = true;
+        }
+
+        if (!fired) {
             // 没有目标时保持短轮询，避免每次都要等满攻击间隔
             unit.attackTimer = 0.1;
             return;
         }
 
         unit.attackTimer = interval;
-        const damage = (cfg.atk ?? 0) * (1 + unit.auraAtk);
-        const volley = Math.max(1, cfg.volley ?? 1);
-        const projectile = cfg.projectile ?? 'arrow';
-
-        if (cfg.kind === UnitKind.Lobber) {
-            ProjectileSystem.spawnArc(model, unit.row, model.grid.colCenter(unit.col), target.x, projectile, damage);
-            model.addEffect({ kind: 'shoot', row: unit.row, x: model.grid.colCenter(unit.col) });
-            return;
-        }
-
-        for (let i = 0; i < volley; i++) {
-            const startX = model.grid.colCenter(unit.col) + 0.35 - i * 0.22;
-            ProjectileSystem.spawnLine(model, unit.row, startX, projectile, damage, cfg.slowFactor ?? 0, cfg.slowDuration ?? 0);
-        }
         model.addEffect({ kind: 'shoot', row: unit.row, x: model.grid.colCenter(unit.col) });
     }
 
-    /** 找到攻击范围内最靠左（最靠前）的敌军 */
-    private static findTarget(model: BattleModel, unit: IUnitInst): IEnemyInst | null {
-        const rows: number[] = [];
-        const span = unit.cfg.rows ?? 1;
-        if (span >= 3) {
-            rows.push(unit.row - 1, unit.row, unit.row + 1);
-        }
-        else {
-            rows.push(unit.row);
-        }
-
+    /** 找到指定行攻击范围内最靠左（最靠前）的敌军 */
+    private static findTarget(model: BattleModel, unit: IUnitInst, lane: number): IEnemyInst | null {
+        const rows = [lane];
         const minX = model.grid.colCenter(unit.col) + 0.1;
         let target: IEnemyInst | null = null;
 

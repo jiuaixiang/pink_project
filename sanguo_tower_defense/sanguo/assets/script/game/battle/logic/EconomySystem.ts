@@ -11,7 +11,7 @@ const AUTO_COLLECT_DELAY = 0.6;
  * 粮草经济系统
  *
  * 1、天降军粮：按关卡配置的间隔与数量，随机落在战场内
- * 2、武将产出：桃园义士按配置周期在自身位置生成军粮
+ * 2、武将产出：鲁肃 / 荀彧按配置周期在自身位置生成军粮
  * 3、拾取：点击拾取，或在设置中开启自动拾取（短暂延迟后自动收下）
  */
 export class EconomySystem {
@@ -41,13 +41,14 @@ export class EconomySystem {
         }
     }
 
-    /** 生成军粮掉落物 */
+    /** 生成军粮掉落物（夜间关产出 -30%） */
     static spawnDrop(model: BattleModel, x: number, y: number, value: number): IFoodDrop {
+        const finalValue = Math.max(1, Math.round(model.level.night === true ? value * model.gameplay.nightFoodMul : value));
         const drop: IFoodDrop = {
             uid: model.nextUid(),
             x,
             y,
-            value,
+            value: finalValue,
             life: DROP_LIFE,
             age: 0,
             flying: false,
@@ -62,6 +63,7 @@ export class EconomySystem {
         for (const drop of model.drops) {
             if (drop.uid !== uid || !drop.alive) continue;
             drop.alive = false;
+            model.foodCollected += drop.value;
             model.addFood(drop.value);
             model.addEffect({ kind: 'food', row: 0, x: drop.x, y: drop.y, value: drop.value });
             return true;

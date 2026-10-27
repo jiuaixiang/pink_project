@@ -14,6 +14,17 @@ class TableGameplayImpl {
         mowerOffset: -0.7,
         spawnX: 9.4,
         dangerX: -0.05,
+        gateHp: 5,
+        comboWindow: 2.5,
+        comboKills: 3,
+        comboReward: 25,
+        mowerInvuln: 2,
+        refundRate: 0.6,
+        repeatCostMul: 0.25,
+        nightFoodMul: 0.7,
+        killGold: 12,
+        equipDropRate: 0.12,
+        tutEnemyHp: 0.6,
     };
 
     private cache: IGameplayConfig | null = null;

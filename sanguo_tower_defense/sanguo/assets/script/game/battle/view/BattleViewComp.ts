@@ -1,10 +1,12 @@
 import type { EventKeyboard, EventTouch } from 'cc';
 import { _decorator, EventMouse, Input, Label, Node, Prefab, Sprite, UIOpacity, UITransform, Vec3, input, instantiate, tween } from 'cc';
-import { DEBUG } from 'cc/env';
+import { GameDebugConfig } from '../../common/config/GameDebugConfig';
 import { oops } from 'db://oops-framework/core/Oops';
 import { GameComponent } from 'db://oops-framework/module/common/GameComponent';
 import { UIID } from '../../common/config/GameUIConfig';
 import { PlayerModel } from '../../common/model/PlayerModel';
+import { PopupState } from '../../common/model/PopupState';
+import { SettingsModel } from '../../common/model/SettingsModel';
 import { TableUnits } from '../../common/table/TableUnits';
 import { AudioPath, AudioService } from '../../common/ui/AudioService';
 import { ViewKit } from '../../common/ui/ViewKit';
@@ -60,13 +62,26 @@ export class BattleViewComp extends GameComponent {
     private cardsLayer: Node | null = null;
 
     private foodLabel: Label | null = null;
+    private killsLabel: Label | null = null;
+    private levelLabel: Label | null = null;
     private waveLabel: Label | null = null;
+    private remainLabel: Label | null = null;
     private waveFill: Node | null = null;
+    private gateFill: Node | null = null;
+    private gateValue: Label | null = null;
     private hintLabel: Label | null = null;
+    private lastGate = -1;
     private speedLabel: Label | null = null;
     private pauseLabel: Label | null = null;
     private retreatLabel: Label | null = null;
     private cancelLabel: Label | null = null;
+
+    private nextWaveLabel: Label | null = null;
+    private bondTag: Label | null = null;
+    private waveFlagLayer: Node | null = null;
+    private fogNode: Node | null = null;
+    private wallSprite: Sprite | null = null;
+    private muteLabel: Label | null = null;
 
     private banner: Node | null = null;
     private bannerText: Label | null = null;
@@ -83,7 +98,7 @@ export class BattleViewComp extends GameComponent {
     private bulletViews: Map<number, Node> = new Map();
     private dropViews: Map<number, Node> = new Map();
     private seen: Set<number> = new Set();
-    private prefabs: Partial<Record<ActorKind | 'card' | 'float' | 'burst', Prefab>> = {};
+    private prefabs: Partial<Record<ActorKind | 'card' | 'float' | 'burst' | 'flag', Prefab>> = {};
 
     private selectedUnit = '';
     private retreatMode = false;
@@ -95,8 +110,12 @@ export class BattleViewComp extends GameComponent {
     private floatCount = 0;
 
     private guideStep = -1;
-    private guidePlantedPeach = false;
-    private guidePlantedArcher = false;
+    /** 已授将到第几波（1=已授鲁肃，2=已授小乔） */
+    private guideGranted = 0;
+
+    /** 长按详情用：当前按住的卡与抑制点击标记 */
+    private longPressUnit = '';
+    private suppressClick = false;
 
     //#region 生命周期
     protected onLoad(): void {
@@ -105,7 +124,7 @@ export class BattleViewComp extends GameComponent {
         this.bindBoardInput();
         this.layoutBoard();
 
-        if (DEBUG) {
+        if (GameDebugConfig.enabled) {
             input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
             this.bindDebugPanel();
         }
@@ -120,16 +139,25 @@ export class BattleViewComp extends GameComponent {
         this.model = model;
 
         this.buildMowers();
+        this.applyLevelVisuals(model);
         this.refreshHud(true);
         this.refreshHint();
         this.setupGuide();
         AudioService.playMusic(AudioPath.Battle);
+
+        // 教学关首次进入播放开场剧情（通关前每次都播，通关后不再打扰）
+        if (model.level.guide === true && !PlayerModel.inst.isCleared(1)) {
+            this.battle?.pause();
+            // 序章结束接「获得武将·丁奉」演出
+            PopupState.openStory('tutorial', () => this.playGetHero('dingfeng'));
+        }
+
         void this.loadPrefabsThenCards();
     }
 
     /** 关闭前调用，清空引用与对象池 */
     teardown(): void {
-        if (DEBUG) input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        if (GameDebugConfig.enabled) input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         this.unscheduleAllCallbacks();
 
         this.unitViews.clear();
@@ -142,7 +170,7 @@ export class BattleViewComp extends GameComponent {
     }
 
     protected onDestroy(): void {
-        if (DEBUG) input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        if (GameDebugConfig.enabled) input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         super.onDestroy();
     }
 
@@ -172,14 +200,26 @@ export class BattleViewComp extends GameComponent {
         this.inputNode = ViewKit.get(root, 'board/input');
         this.cardsLayer = ViewKit.get(root, 'cards');
 
-        this.foodLabel = ViewKit.label(root, 'food_value');
-        this.waveLabel = ViewKit.label(root, 'wave_text');
-        this.waveFill = ViewKit.get(root, 'wave_bar_fill');
+        this.foodLabel = ViewKit.label(root, 'stats_panel/food_value');
+        this.killsLabel = ViewKit.label(root, 'stats_panel/kills_value');
+        this.levelLabel = ViewKit.label(root, 'topbar/level_name');
+        this.waveLabel = ViewKit.label(root, 'topbar/wave_text');
+        this.remainLabel = ViewKit.label(root, 'topbar/remain_text');
+        this.waveFill = ViewKit.get(root, 'topbar/wave_fill');
+        this.gateFill = ViewKit.get(root, 'topbar/gate_fill');
+        this.gateValue = ViewKit.label(root, 'topbar/gate_value');
         this.hintLabel = ViewKit.label(root, 'hint');
         this.speedLabel = ViewKit.label(root, 'btn_speed/label');
         this.pauseLabel = ViewKit.label(root, 'btn_pause/label');
         this.retreatLabel = ViewKit.label(root, 'btn_retreat/label');
         this.cancelLabel = ViewKit.label(root, 'btn_cancel/label');
+
+        this.nextWaveLabel = ViewKit.label(root, 'topbar/next_wave');
+        this.bondTag = ViewKit.label(root, 'bond_tag');
+        this.waveFlagLayer = ViewKit.get(root, 'topbar/wave_flags');
+        this.fogNode = ViewKit.get(root, 'fog');
+        this.wallSprite = ViewKit.sprite(root, 'board/wall');
+        this.muteLabel = ViewKit.label(root, 'btn_mute/label');
 
         this.banner = ViewKit.get(root, 'banner');
         this.bannerText = ViewKit.label(root, 'banner/text');
@@ -187,6 +227,10 @@ export class BattleViewComp extends GameComponent {
         this.guideText = ViewKit.label(root, 'guide/text');
         this.debugPanel = ViewKit.get(root, 'debug');
 
+        ViewKit.text(root, 'topbar/gate_label', ViewKit.lang('battle_gate'));
+        ViewKit.text(root, 'btn_mute/label', ViewKit.lang('battle_mute'));
+        ViewKit.text(root, 'btn_help/label', ViewKit.lang('battle_help'));
+        ViewKit.text(root, 'topbar/btn_strat/label', ViewKit.lang('battle_strat'));
         ViewKit.text(root, 'btn_pause/label', ViewKit.lang('battle_pause'));
         ViewKit.text(root, 'btn_speed/label', `×${this.battle == null ? 1 : this.battle.speed}`);
         ViewKit.text(root, 'btn_retreat/label', ViewKit.lang('battle_retreat'));
@@ -214,6 +258,15 @@ export class BattleViewComp extends GameComponent {
         const root = this.node;
         ViewKit.click(ViewKit.get(root, 'btn_pause'), () => this.onPause());
         ViewKit.click(ViewKit.get(root, 'btn_speed'), () => this.onSpeed());
+        ViewKit.click(ViewKit.get(root, 'btn_mute'), () => this.onMute());
+        ViewKit.click(ViewKit.get(root, 'btn_help'), () => {
+            this.battle?.pause();
+            oops.gui.open(UIID.Help);
+        });
+        ViewKit.click(ViewKit.get(root, 'topbar/btn_strat'), () => {
+            this.battle?.pause();
+            oops.gui.open(UIID.Strat);
+        });
         ViewKit.click(ViewKit.get(root, 'btn_retreat'), () => this.onRetreatMode());
         ViewKit.click(ViewKit.get(root, 'btn_cancel'), () => this.clearSelection());
     }
@@ -246,6 +299,56 @@ export class BattleViewComp extends GameComponent {
         board.setScale(1, 1, 1);
     }
 
+    /** 关卡视觉：浓雾遮蔽、地形禁放格、城墙初始色 */
+    private applyLevelVisuals(model: BattleModel): void {
+        if (this.fogNode != null) this.fogNode.active = model.level.fog === true;
+
+        for (const cell of this.cells) {
+            if (!model.grid.isBlocked(cell.row, cell.col)) continue;
+            if (cell.bg != null) cell.bg.color = ViewKit.color('#0F0B08');
+            if (cell.hl != null) cell.hl.active = false;
+        }
+
+        this.tintWall(model);
+    }
+
+    /** 城墙随城门耐久变色并切换破损分档 */
+    private tintWall(model: BattleModel): void {
+        if (this.wallSprite == null) return;
+        const ratio = model.gateMax > 0 ? Math.max(0, model.gateHp) / model.gateMax : 0;
+
+        if (ratio > 0.6) this.wallSprite.color = ViewKit.color('#5A3A28');
+        else if (ratio > 0.2) this.wallSprite.color = ViewKit.color('#6B4A2A');
+        else this.wallSprite.color = ViewKit.color('#7A2E22');
+
+        // 分档：完好 → 1 道裂 → 2 道 → 3 道 + 火光
+        ViewKit.visible(this.board, 'wall_crack_1', ratio <= 0.6);
+        ViewKit.visible(this.board, 'wall_crack_2', ratio <= 0.4);
+        ViewKit.visible(this.board, 'wall_crack_3', ratio <= 0.2);
+        ViewKit.visible(this.board, 'wall_fire', ratio <= 0.2);
+    }
+
+    /** 城墙受击晃动（只位移预制体节点） */
+    private shakeWall(): void {
+        const wall = ViewKit.get(this.board, 'wall');
+        if (wall == null) return;
+        const x = wall.position.x;
+        tween(wall)
+            .to(0.04, { position: new Vec3(x + 6, wall.position.y, 0) })
+            .to(0.05, { position: new Vec3(x - 5, wall.position.y, 0) })
+            .to(0.04, { position: new Vec3(x, wall.position.y, 0) })
+            .start();
+    }
+
+    /** 出手 / 受击的缩放反馈（仅对已有演员节点做 tween） */
+    private punch(node: Node | null): void {
+        if (node == null || !node.isValid) return;
+        tween(node)
+            .to(0.06, { scale: new Vec3(1.12, 1.12, 1) })
+            .to(0.08, { scale: new Vec3(1, 1, 1) })
+            .start();
+    }
+
     private buildMowers(): void {
         const model = this.model;
         if (model == null) return;
@@ -274,6 +377,7 @@ export class BattleViewComp extends GameComponent {
             card: 'gui/battle/card',
             float: 'gui/battle/float_text',
             burst: 'gui/battle/fx_burst',
+            flag: 'gui/battle/wave_flag',
         };
 
         const keys = Object.keys(paths);
@@ -286,6 +390,27 @@ export class BattleViewComp extends GameComponent {
 
         if (!this.node.isValid) return;
         this.buildCards();
+        this.buildWaveFlags();
+    }
+
+    /** 生成波次旗标（大波红旗） */
+    private buildWaveFlags(): void {
+        const model = this.model;
+        const layer = this.waveFlagLayer;
+        const prefab = this.prefabs.flag;
+        if (model == null || layer == null || prefab == null || model.level.endless === true) return;
+
+        const width = 210;
+        for (const flag of model.waveFlags) {
+            const node = instantiate(prefab);
+            node.parent = layer;
+            node.setPosition(new Vec3(-width / 2 + width * flag.progress, 0, 0));
+            const bar = node.getChildByName('bar');
+            if (bar != null) {
+                ViewKit.resize(bar, flag.big ? 3 : 2, flag.big ? 21 : 18);
+                ViewKit.tint(bar.getComponent(Sprite), flag.big ? '#E0503A' : '#CAA84A');
+            }
+        }
     }
 
     private buildCards(): void {
@@ -300,19 +425,20 @@ export class BattleViewComp extends GameComponent {
         });
         this.cards.length = 0;
 
-        // 可用宽度 900（容器位于 x=-150），12 张卡时步长收窄，保证左右都不越界
-        const unitIds = model.level.units.slice(0, 12);
-        const step = Math.min(88, 900 / Math.max(1, unitIds.length));
-        const startX = -((unitIds.length - 1) * step) / 2;
+        // 左侧栏竖排卡槽：两列 × 最多六行，12 张卡刚好铺满
+        const unitIds = model.deck.slice(0, 12);
 
         for (let i = 0; i < unitIds.length; i++) {
             const unitId = unitIds[i];
             const cfg = TableUnits.get(unitId);
             if (cfg == null) continue;
 
+            const col = i % 2;
+            const row = Math.floor(i / 2);
+
             const node = instantiate(prefab);
             node.parent = layer;
-            node.setPosition(new Vec3(startX + i * step, 0, 0));
+            node.setPosition(new Vec3(col === 0 ? -51 : 51, 180 - row * 72, 0));
 
             ViewKit.tintPath(node, 'chip', cfg.color);
             ViewKit.text(node, 'tag', cfg.tag);
@@ -323,6 +449,7 @@ export class BattleViewComp extends GameComponent {
             ViewKit.visible(node, 'mask_text', false);
 
             ViewKit.click(node, () => this.onCardClick(unitId));
+            this.bindLongPress(node, unitId);
 
             this.cards.push({
                 unitId,
@@ -348,7 +475,7 @@ export class BattleViewComp extends GameComponent {
                 if (card.mask != null) {
                     card.mask.active = ratio > 0.001;
                     const transform = card.mask.getComponent(UITransform);
-                    if (transform != null) transform.setContentSize(92, 106 * ratio);
+                    if (transform != null) transform.setContentSize(96, 68 * ratio);
                 }
                 if (card.maskText != null) {
                     card.maskText.node.active = ratio > 0.001;
@@ -356,18 +483,67 @@ export class BattleViewComp extends GameComponent {
                 }
             }
 
+            const price = DeploySystem.priceOf(model, card.unitId);
             const ready = DeploySystem.isCardReady(model, card.unitId);
             if (card.bg != null) card.bg.color = ViewKit.color(ready ? '#FFFFFF' : '#8C8C8C');
-            if (card.cost != null) card.cost.color = ViewKit.color(model.food >= cfg.cost ? '#D9C08C' : '#C0392B');
+            if (card.cost != null) {
+                ViewKit.setText(card.cost, String(price));
+                card.cost.color = ViewKit.color(model.food >= price ? '#D9C08C' : '#C0392B');
+            }
             if (card.frame != null) card.frame.active = this.selectedUnit === card.unitId;
+
+            // 引导期：只高亮当前步骤指定的武将，其余压暗（守波步全部压暗）
+            if (this.guideStep >= 2) {
+                const allowed = this.guideAllowed();
+                const isAllowed = allowed !== '' && card.unitId === allowed;
+                if (card.bg != null) card.bg.color = ViewKit.color(isAllowed ? '#FFFFFF' : '#5E5E5E');
+                if (card.frame != null) card.frame.active = isAllowed;
+            }
         }
     }
     //#endregion
 
     //#region 输入与布阵
+    /** 长按卡片查看详情（0.45 秒） */
+    private bindLongPress(node: Node, unitId: string): void {
+        node.on(Node.EventType.TOUCH_START, () => {
+            this.longPressUnit = unitId;
+            this.scheduleOnce(() => {
+                if (this.longPressUnit !== unitId) return;
+                this.longPressUnit = '';
+                this.suppressClick = true;
+                this.battle?.pause();
+                PopupState.openUnitDetail(unitId);
+            }, 0.45);
+        });
+
+        const cancel = () => {
+            if (this.longPressUnit === unitId) this.longPressUnit = '';
+        };
+        node.on(Node.EventType.TOUCH_END, cancel);
+        node.on(Node.EventType.TOUCH_CANCEL, cancel);
+    }
+
     private onCardClick(unitId: string): void {
+        if (this.suppressClick) {
+            this.suppressClick = false;
+            return;
+        }
+
         const model = this.model;
         if (model == null) return;
+
+        // 引导期只允许当前步骤指定的武将
+        if (this.guideStep >= 2) {
+            const allow = this.guideAllowed();
+            if (unitId !== allow) {
+                const allowCfg = allow !== '' ? TableUnits.get(allow) : null;
+                oops.gui.toast(allowCfg != null
+                    ? ViewKit.lang('guide_lock_one', ViewKit.lang(allowCfg.nameKey))
+                    : ViewKit.lang('guide_lock_none'));
+                return;
+            }
+        }
 
         if (DeploySystem.isCardReady(model, unitId)) {
             this.selectedUnit = this.selectedUnit === unitId ? '' : unitId;
@@ -435,13 +611,20 @@ export class BattleViewComp extends GameComponent {
     }
 
     private onPlanted(unitId: string): void {
-        if (this.guideStep === 1 && unitId === 'peach') {
-            this.guidePlantedPeach = true;
-            this.setGuideStep(2, ViewKit.lang('guide_plant_archer'));
+        if (this.guideStep < 2) return;
+
+        // 每步只认一名武将，放下即推进到「守波」步
+        if (this.guideStep === 2 && unitId === 'dingfeng') {
+            if (this.model != null) this.model.wavesHeld = false;   // 放下第一枚将才开波
+            this.setGuideStep(3, 'guide_step3');
+            return;
         }
-        else if (this.guideStep === 2 && unitId === 'archer') {
-            this.guidePlantedArcher = true;
-            this.setGuideStep(3, ViewKit.lang('guide_ready'));
+        if (this.guideStep === 4 && unitId === 'lusu') {
+            this.setGuideStep(5, 'guide_step5');
+            return;
+        }
+        if (this.guideStep === 6 && unitId === 'xiaoqiao') {
+            this.setGuideStep(7, 'guide_step7');
         }
     }
 
@@ -473,9 +656,11 @@ export class BattleViewComp extends GameComponent {
         this.hoverRow = row;
         this.hoverCol = col;
 
+        const model = this.model;
         for (const cell of this.cells) {
             if (cell.hl == null) continue;
-            cell.hl.active = cell.row === row && cell.col === col;
+            const blocked = model != null && model.grid.isBlocked(cell.row, cell.col);
+            cell.hl.active = !blocked && cell.row === row && cell.col === col;
         }
     }
 
@@ -505,9 +690,7 @@ export class BattleViewComp extends GameComponent {
     }
 
     private onCollected(): void {
-        if (this.guideStep === 0) {
-            this.setGuideStep(1, ViewKit.lang('guide_plant_peach'));
-        }
+        // 引导中的拾取无额外推进，仅保留钩子便于后续扩展
     }
 
     private refreshHint(): void {
@@ -528,18 +711,66 @@ export class BattleViewComp extends GameComponent {
         if (model == null) return;
 
         ViewKit.setText(this.foodLabel, String(Math.floor(model.food)));
+        ViewKit.setText(this.killsLabel, String(model.kills));
+        ViewKit.setText(this.levelLabel, ViewKit.lang(model.level.nameKey));
 
-        const total = model.waves.length;
-        const wave = model.waveNumber;
-        ViewKit.setText(this.waveLabel, total === 0 ? ViewKit.lang('battle_wave_idle') : ViewKit.lang('battle_wave', wave, total));
+        if (model.level.endless === true) {
+            ViewKit.setText(this.waveLabel, ViewKit.lang('battle_endless_wave', model.endlessWave));
+            ViewKit.setText(this.remainLabel, '');
+        }
+        else {
+            const total = model.waves.length;
+            const wave = model.waveNumber;
+            ViewKit.setText(this.waveLabel, total === 0 ? ViewKit.lang('battle_wave_idle') : ViewKit.lang('battle_wave', wave, total));
+            ViewKit.setText(this.remainLabel, ViewKit.lang('battle_remain', model.remainEnemies));
+        }
 
         const progress = model.progress;
         if (force || Math.abs(progress - this.lastProgress) > 0.005) {
             this.lastProgress = progress;
-            ViewKit.setBar(this.node, 'wave_bar_fill', progress);
+            ViewKit.setBar(this.node, 'topbar/wave_fill', progress);
         }
 
+        const gate = Math.max(0, model.gateHp);
+        if (force || gate !== this.lastGate) {
+            this.lastGate = gate;
+            ViewKit.setBar(this.node, 'topbar/gate_fill', model.gateMax > 0 ? gate / model.gateMax : 0);
+            ViewKit.setText(this.gateValue, `${gate}/${model.gateMax}`);
+            if (this.gateValue != null) {
+                this.gateValue.color = ViewKit.color(gate <= 2 ? '#FF7A5A' : '#F4D98A');
+            }
+        }
+
+        // 下一波倒计时（无尽模式显示下一波）
+        let countdown = -1;
+        if (model.level.endless === true) {
+            countdown = model.endlessTimer;
+        }
+        else {
+            const next = WaveSystem.nextWaveTime(model);
+            if (next > 0) countdown = Math.max(0, next - model.time);
+        }
+        ViewKit.setText(this.nextWaveLabel, countdown >= 0 ? ViewKit.lang('battle_next_wave', Math.ceil(countdown)) : '');
+
+        // 羁缘角标
+        const bondCount = model.activeBonds.length;
+        if (this.bondTag != null) {
+            this.bondTag.node.active = bondCount > 0;
+            if (bondCount > 0) this.bondTag.string = ViewKit.lang('battle_bond', bondCount);
+        }
+
+        this.tintWall(model);
+
         if (this.speedLabel != null) ViewKit.setText(this.speedLabel, `×${this.battle == null ? 1 : this.battle.speed}`);
+    }
+
+    /** 静音开关（音效） */
+    private onMute(): void {
+        const settings = SettingsModel.inst;
+        const next = !settings.sfx;
+        settings.setSfx(next);
+        if (this.muteLabel != null) this.muteLabel.color = ViewKit.color(next ? '#3A2408' : '#8A6A4A');
+        oops.gui.toast(ViewKit.lang(next ? 'battle_mute_on' : 'battle_mute_off'));
     }
 
     private onPause(): void {
@@ -578,6 +809,7 @@ export class BattleViewComp extends GameComponent {
 
             node.active = true;
             node.setPosition(new Vec3(this.px(unit.col + 0.5), this.py(unit.row + 0.5), 0));
+            this.punchOnHurt(node, unit.hp);
 
             const chip = node.getChildByName('chip')?.getComponent(Sprite) ?? null;
             ViewKit.tint(chip, unit.hitFlash > 0 ? '#FFFFFF' : unit.cfg.color, 240);
@@ -618,6 +850,14 @@ export class BattleViewComp extends GameComponent {
 
             const scale = enemy.cfg.size ?? 1;
             node.setScale(scale, scale, 1);
+
+            // 受击反馈放在 chip 子节点上，避免与体型缩放互相覆盖
+            const holder = node as unknown as { __lastHp?: number };
+            if (holder.__lastHp != null && enemy.hp < holder.__lastHp - 0.5) {
+                const chip = node.getChildByName('chip');
+                if (chip != null) this.punch(chip);
+            }
+            holder.__lastHp = enemy.hp;
 
             const chip = node.getChildByName('chip')?.getComponent(Sprite) ?? null;
             const slowed = enemy.slowRemain > 0;
@@ -762,6 +1002,7 @@ export class BattleViewComp extends GameComponent {
             switch (effect.kind) {
                 case 'damage':
                     this.spawnFloat(x + 10, y + 24, `-${effect.value ?? 0}`, effect.color ?? '#F2E6D0');
+                    this.playThrottled('hit', AudioPath.Hit, 80);
                     break;
                 case 'food':
                     this.spawnFloat(x, y + 20, `+${effect.value ?? 0}`, '#D9A441');
@@ -774,15 +1015,56 @@ export class BattleViewComp extends GameComponent {
                     break;
                 case 'bigwave':
                     this.playBigWave();
+                    AudioService.playEffect(AudioPath.Wave);
                     break;
                 case 'breach':
                     ViewKit.setText(this.hintLabel, ViewKit.lang('battle_breach'));
+                    break;
+                case 'gate':
+                    ViewKit.setText(this.hintLabel, ViewKit.lang('battle_gate_hit'));
+                    this.shakeWall();
+                    break;
+                case 'shoot':
+                    this.punchAtRow(effect.row, x);
+                    this.playThrottled('shoot', AudioPath.Shoot, 70);
+                    break;
+                case 'die':
+                    this.playThrottled('die', AudioPath.Die, 90);
                     break;
                 default:
                     break;
             }
         }
         model.effects.length = 0;
+    }
+
+    /** 战斗内音效节流（避免齐射时叠成噪音） */
+    private readonly sfxAt: Record<string, number> = {};
+
+    private playThrottled(key: string, path: string, gapMs: number): void {
+        const now = Date.now();
+        if (now - (this.sfxAt[key] ?? 0) < gapMs) return;
+        this.sfxAt[key] = now;
+        AudioService.playEffect(path);
+    }
+
+    /** 让该行该位置附近的武将做出手动作 */
+    private punchAtRow(row: number, worldX: number): void {
+        const y = this.py(row + 0.5);
+        for (const node of this.unitViews.values()) {
+            if (!node.isValid || !node.active) continue;
+            if (Math.abs(node.position.x - worldX) > 60) continue;
+            if (Math.abs(node.position.y - y) > 40) continue;
+            this.punch(node);
+            return;
+        }
+    }
+
+    /** 血量下降时的受击反馈 */
+    private punchOnHurt(node: Node, hp: number): void {
+        const holder = node as unknown as { __lastHp?: number };
+        if (holder.__lastHp != null && hp < holder.__lastHp - 0.5) this.punch(node);
+        holder.__lastHp = hp;
     }
 
     private spawnFloat(x: number, y: number, text: string, color: string): void {
@@ -860,41 +1142,118 @@ export class BattleViewComp extends GameComponent {
     //#endregion
 
     //#region 新手引导
+    /**
+     * 参考稿新手引导（并入第 1 关，边打边教）
+     *
+     * 2 部署丁奉（部署前不开波）→ 3 守第 1 波
+     * → 清波授鲁肃（剧情）→ 4 部署鲁肃 → 5 守第 2 波
+     * → 清波授小乔（剧情）→ 6 部署小乔 → 7 顶住终波 → 通关即完成
+     */
     private setupGuide(): void {
         const model = this.model;
         if (model == null) return;
-        if (model.level.guide !== true || PlayerModel.inst.guideDone) {
+
+        // 以「第 1 关是否通关」为准：老存档的 guideDone 不再决定是否引导
+        if (model.level.guide !== true || PlayerModel.inst.isCleared(1)) {
             if (this.guide != null) this.guide.active = false;
+            this.guideStep = -1;
             return;
         }
-        this.guideStep = 0;
-        this.guidePlantedPeach = false;
-        this.guidePlantedArcher = false;
-        ViewKit.visible(this.node, 'guide', true);
-        ViewKit.setText(this.guideText, ViewKit.lang('guide_collect'));
+
+        this.guideStep = 2;
+        this.guideGranted = 0;
+        model.wavesHeld = true;      // 部署前暂停开波（放下第一枚将才迎战）
+        this.showGuide('guide_step2');
     }
 
-    private setGuideStep(step: number, text: string): void {
-        this.guideStep = step;
+    /** 引导顶部提示带 */
+    private showGuide(key: string): void {
         ViewKit.visible(this.node, 'guide', true);
-        ViewKit.setText(this.guideText, text);
+        ViewKit.setText(this.guideText, ViewKit.lang(key));
+    }
+
+    private hideGuide(): void {
+        if (this.guide != null) this.guide.active = false;
+    }
+
+    /** 当前引导步唯一允许部署的武将（守波步返回空 = 全部锁住） */
+    private guideAllowed(): string {
+        if (this.guideStep === 2) return 'dingfeng';
+        if (this.guideStep === 4) return 'lusu';
+        if (this.guideStep === 6) return 'xiaoqiao';
+        return '';
+    }
+
+    private setGuideStep(step: number, key: string): void {
+        this.guideStep = step;
+        this.clearSelection();
+        this.showGuide(key);
+    }
+
+    /** 授将：加入卡组、重建卡槽、播剧情并推进引导步 */
+    private grantGuideUnit(unitId: string, storyId: string, nextStep: number, key: string): void {
+        const model = this.model;
+        if (model == null) return;
+
+        model.grantUnit(unitId);
+        this.buildCards();
+        this.setGuideStep(nextStep, key);
+
+        this.battle?.pause();
+        // 授将剧情结束接「获得武将」演出
+        PopupState.openStory(storyId, () => {
+            if (!this.node.isValid) return;
+            this.refreshHint();
+            this.playGetHero(unitId);
+        });
+    }
+
+    /** 获得武将演出（暂停战斗） */
+    private playGetHero(unitId: string): void {
+        this.battle?.pause();
+        PopupState.openGetHero(unitId);
     }
 
     private updateGuide(): void {
         const model = this.model;
-        if (this.guideStep < 0 || model == null) return;
-        if (this.guideStep < 3) return;
+        if (model == null || this.guideStep < 2) return;
 
-        // 第一波出兵后即视为引导完成
-        if (!this.guidePlantedArcher || model.waveCursor === 0) return;
+        // 部署兜底：60 秒未放将也开波（参考稿 TUT_DEPLOY_TIMEOUT）
+        if (this.guideStep === 2 && model.wavesHeld && model.time > 60) {
+            model.wavesHeld = false;
+            this.setGuideStep(3, 'guide_step3');
+            return;
+        }
 
-        this.guideStep = 4;
-        ViewKit.visible(this.node, 'guide', false);
-        PlayerModel.inst.setGuideDone();
+        if (model.over) {
+            this.hideGuide();
+            if (model.win) PlayerModel.inst.setGuideDone();
+            return;
+        }
+
+        // 清完第 1 波 → 授鲁肃
+        if (this.guideStep === 3 && this.guideGranted < 1 && model.waveCursor >= 2) {
+            this.guideGranted = 1;
+            this.grantGuideUnit('lusu', 'lusu', 4, 'guide_step4');
+            return;
+        }
+
+        // 清完第 2 波 → 授小乔
+        if (this.guideStep === 5 && this.guideGranted < 2 && model.waveCursor >= 3) {
+            this.guideGranted = 2;
+            this.grantGuideUnit('xiaoqiao', 'xiaoqiao', 6, 'guide_step6');
+            return;
+        }
+
+        // 终波开打 → 收尾提示
+        if (this.guideStep === 7 && model.waveCursor >= 3) {
+            this.showGuide('guide_step7');
+        }
     }
     //#endregion
 
     //#region 结算
+
     private checkFinish(battle: Battle, model: BattleModel): void {
         this.updateGuide();
         if (!model.over || this.resultShown) return;

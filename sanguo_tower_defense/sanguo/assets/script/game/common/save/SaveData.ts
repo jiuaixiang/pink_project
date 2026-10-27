@@ -43,6 +43,12 @@ export interface ISaveData {
     clears: number;
     /** 新手引导是否已完成 */
     guideDone: boolean;
+    /** 无尽模式最高波数 */
+    bestWave: number;
+    /** 已获得的装备 id（可重复） */
+    bag: string[];
+    /** 武将穿戴：unitId -> slot -> equipId */
+    wearing: Record<string, Record<string, string>>;
     /** 设置数据 */
     settings: ISaveSettings;
 }
@@ -69,6 +75,9 @@ export function createDefaultSave(): ISaveData {
         kills: 0,
         clears: 0,
         guideDone: false,
+        bestWave: 0,
+        bag: [],
+        wearing: {},
         settings: createDefaultSettings(),
     };
 }
