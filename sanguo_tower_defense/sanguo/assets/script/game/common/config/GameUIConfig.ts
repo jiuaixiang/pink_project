@@ -48,7 +48,7 @@ export enum UIID {
 
 /** 打开界面方式的配置数据 */
 export const UIConfigData: { [key: number]: UIConfig } = {
-    [UIID.DemoMain]: { layer: LayerType.UI, prefab: 'gui/demo/demo_main', destroy: false },
+   // [UIID.DemoMain]: { layer: LayerType.UI, prefab: 'gui/demo/demo_main', destroy: false },
     [UIID.Main]: { layer: LayerType.UI, prefab: 'gui/main/main', destroy: true },
     [UIID.LevelSelect]: { layer: LayerType.UI, prefab: 'gui/main/level_select', destroy: true },
     [UIID.Codex]: { layer: LayerType.UI, prefab: 'gui/main/codex', destroy: true },

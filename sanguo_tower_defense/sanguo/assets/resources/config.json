@@ -3,29 +3,29 @@
   "config": {
     "dev": {
       "version": "1.0.0",
-      "localDataKey": "oops",
-      "localDataIv": "framework",
+      "localDataKey": "sanguo_key_dev",
+      "localDataIv": "sanguo_iv_dev",
       "frameRate": 60,
       "loadingTimeoutGui": 1000,
-      "mobileSafeArea": false,
+      "mobileSafeArea": true,
       "stats": false
     },
     "test": {
       "version": "1.0.0",
-      "localDataKey": "oops",
-      "localDataIv": "framework",
+      "localDataKey": "sanguo_key_test",
+      "localDataIv": "sanguo_iv_test",
       "frameRate": 60,
       "loadingTimeoutGui": 1000,
-      "mobileSafeArea": false,
+      "mobileSafeArea": true,
       "stats": false
     },
     "prod": {
       "version": "1.0.0",
-      "localDataKey": "oops",
-      "localDataIv": "framework",
+      "localDataKey": "sanguo_key_prod",
+      "localDataIv": "sanguo_iv_prod",
       "frameRate": 60,
       "loadingTimeoutGui": 1000,
-      "mobileSafeArea": false,
+      "mobileSafeArea": true,
       "stats": false
     }
   },
