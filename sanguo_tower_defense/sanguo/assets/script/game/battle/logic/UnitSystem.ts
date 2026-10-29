@@ -1,11 +1,13 @@
 import type { IUnitConfig } from '../../common/table/ITable';
 import { UnitKind } from '../../common/table/ITable';
+import { TableProjectiles } from '../../common/table/TableProjectiles';
 import type { IEnemyInst, IUnitInst } from './Actor';
 import type { BattleModel } from './BattleModel';
 import { Combat } from './Combat';
 import { EconomySystem } from './EconomySystem';
 import { ProjectileSystem } from './ProjectileSystem';
 import { TalentSystem } from './TalentSystem';
+import { BattleFx } from './BattleFx';
 
 /**
  * 武将系统
@@ -80,9 +82,15 @@ export class UnitSystem {
         unit.produceTimer -= dt;
         if (unit.produceTimer > 0) return;
 
+        // 产粮数值以天赋 yield 为准（与 produce.value 打通，避免两处不一致）
+        const yieldAmt = Math.round(unit.cfg.talent?.yield ?? produce.value);
         unit.produceTimer = Math.max(1, produce.interval);
-        EconomySystem.spawnDrop(model, model.grid.colCenter(unit.col), unit.row + 0.5, produce.value);
-        model.addEffect({ kind: 'food', row: unit.row, x: model.grid.colCenter(unit.col), value: produce.value });
+        const cx = model.grid.colCenter(unit.col);
+        EconomySystem.spawnDrop(model, cx, unit.row + 0.5, yieldAmt);
+        model.addEffect({ kind: 'food', row: unit.row, x: cx, value: yieldAmt });
+        BattleFx.castaura(model, cx, unit.row, '#f0d060', 0.7);
+        // 粮车驶向城墙中央城门（x=0 为战场左沿，y=rows/2 为城门中心）
+        BattleFx.graincart(model, cx, unit.row, '#f0d060', 0, model.grid.rows / 2);
     }
 
     private static updateShooter(model: BattleModel, unit: IUnitInst, dt: number): void {
@@ -110,6 +118,7 @@ export class UnitSystem {
 
             if (cfg.kind === UnitKind.Lobber) {
                 ProjectileSystem.spawnArc(model, lane, model.grid.colCenter(unit.col), target.x, projectile, damage);
+                BattleFx.muzzle(model, model.grid.colCenter(unit.col) + 0.4, lane, TableProjectiles.get(projectile)?.color ?? '#FFE9A8', 0);
                 fired = true;
                 continue;
             }
@@ -134,6 +143,12 @@ export class UnitSystem {
 
         unit.attackTimer = interval;
         model.addEffect({ kind: 'shoot', row: unit.row, x: model.grid.colCenter(unit.col) });
+        const pcfg = TableProjectiles.get(projectile);
+        const visual = pcfg?.visual ?? (cfg.kind === UnitKind.Lobber ? 'stone' : 'arrow');
+        if (visual === 'arrow') {
+            BattleFx.bowdraw(model, model.grid.colCenter(unit.col), unit.row, pcfg?.color ?? '#FFE9A8', 0);
+        }
+        BattleFx.muzzle(model, model.grid.colCenter(unit.col) + 0.4, unit.row, pcfg?.color ?? '#FFE9A8', 0);
     }
 
     /** 找到指定行攻击范围内最靠左（最靠前）的敌军 */

@@ -32,12 +32,7 @@ export class CodexViewComp extends GameComponent {
         this.list = ViewKit.get(root, 'list');
         this.detail = ViewKit.get(root, 'detail');
 
-        ViewKit.text(root, 'btn_back/label', ViewKit.lang('codex_back'));
-        ViewKit.text(root, 'title', ViewKit.lang('codex_title'));
-        ViewKit.text(root, 'tip', ViewKit.lang('codex_tip'));
-        ViewKit.text(root, 'tab_unit/label', ViewKit.lang('codex_units'));
-        ViewKit.text(root, 'tab_enemy/label', ViewKit.lang('codex_enemies'));
-
+                                        
         ViewKit.click(ViewKit.get(root, 'btn_back'), () => {
             oops.gui.remove(UIID.Codex);
         });

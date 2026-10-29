@@ -6,6 +6,8 @@ import { AppNav } from '../common/ui/AppNav';
 import { ViewKit } from '../common/ui/ViewKit';
 import { AudioPath, AudioService } from '../common/ui/AudioService';
 import { DraftModel } from '../common/model/DraftModel';
+import { PlayerModel } from '../common/model/PlayerModel';
+import { DraftViewModel } from './DraftViewModel';
 import { TableLevels } from '../common/table/TableLevels';
 import { TableUnits } from '../common/table/TableUnits';
 
@@ -26,6 +28,7 @@ export class DraftViewComp extends GameComponent {
     private pool: string[] = [];
     private readonly selected = new Set<string>();
     private readonly items = new Map<string, Node>();
+    private vm: DraftViewModel | null = null;
 
     protected onLoad(): void {
         this.levelId = DraftModel.getPending();
@@ -35,16 +38,14 @@ export class DraftViewComp extends GameComponent {
             return;
         }
 
-        this.pool = level.units.slice(0, 12);
+        // 选将池只展示已获得的武将 / 器械（引导授予、选将、通关收入花名册），
+        // 未获得的单位（如尚未通关获取到的拒马）不会出现在可选列表中
+        this.pool = level.units.filter((id) => PlayerModel.inst.isUnitUnlocked(id)).slice(0, 12);
 
+        // 文案与计数由预制体上的 LanguageLabel / VMLabel 绑定刷新
         const root = this.node;
-        ViewKit.text(root, 'title', ViewKit.lang('draft_title'));
-        ViewKit.text(root, 'level_name', ViewKit.levelName(level.id));
-        ViewKit.text(root, 'tip', ViewKit.lang('draft_tip', MAX_DECK));
-        ViewKit.text(root, 'btn_start/label', ViewKit.lang('draft_start'));
-        ViewKit.text(root, 'btn_all/label', ViewKit.lang('draft_all'));
-        ViewKit.text(root, 'btn_clear/label', ViewKit.lang('draft_clear'));
-        ViewKit.text(root, 'btn_back/label', ViewKit.lang('select_back'));
+        this.vm = this.node.getComponent(DraftViewModel);
+        this.syncVm();
 
         const previous = DraftModel.getDeck(level.id);
         const preset = previous ?? this.pool.slice(0, Math.min(MAX_DECK, this.pool.length));
@@ -125,7 +126,16 @@ export class DraftViewComp extends GameComponent {
             const bg = node.getChildByName('bg')?.getComponent(Sprite);
             if (bg != null) bg.color = ViewKit.color(on ? '#FFFFFF' : '#8C8C8C');
         }
-        ViewKit.text(this.node, 'count', ViewKit.lang('draft_count', this.selected.size, MAX_DECK));
+        this.syncVm();
+    }
+
+    /** 把关卡名与已选计数写入 MVVM 数据源，VMLabel 自动刷新 */
+    private syncVm(): void {
+        const level = TableLevels.get(this.levelId);
+        this.vm?.sync(
+            level != null ? ViewKit.levelName(level.id) : '',
+            ViewKit.lang('draft_count', this.selected.size, MAX_DECK),
+        );
     }
 
     private onStart(): void {

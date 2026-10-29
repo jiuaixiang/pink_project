@@ -70,4 +70,19 @@ export class GridMap {
     clear(): void {
         this.cells.fill(0);
     }
+
+    /**
+     * 敌军可通行的行（走廊）。
+     * 仅当该行左端（城门列）与右端（出生列）都未被地形封堵时才算通行走廊，
+     * 这样高山 / 激流整行封死的行不会成为敌军出生点（避免「从其它道路进攻」）。
+     */
+    lanes(): number[] {
+        const result: number[] = [];
+        for (let row = 0; row < this.rows; row++) {
+            if (!this.isBlocked(row, 0) && !this.isBlocked(row, this.cols - 1)) {
+                result.push(row);
+            }
+        }
+        return result;
+    }
 }

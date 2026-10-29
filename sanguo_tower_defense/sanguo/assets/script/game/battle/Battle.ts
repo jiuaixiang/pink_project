@@ -121,7 +121,11 @@ export class Battle {
             return;
         }
         this.level = level;
-        const model = new BattleModel(level, DraftModel.getDeck(level.id) ?? undefined);
+        // 首次进入新手引导关时，卡组初始为空，由开场剧情依次「获得武将」后逐步加入卡槽；
+        // 已通关重玩（引导不再触发）或普通关卡，则沿用选将结果（缺省为关卡卡组）
+        const guideActive = level.guide === true && !PlayerModel.inst.isCleared(level.id);
+        const deck = guideActive ? [] : (DraftModel.getDeck(level.id) ?? undefined);
+        const model = new BattleModel(level, deck);
         // 沿用设置中的默认倍速
         model.speed = SettingsModel.inst.speed >= 2 ? 2 : 1;
         this.model = model;

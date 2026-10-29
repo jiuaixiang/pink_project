@@ -2,6 +2,8 @@ import { oops } from 'db://oops-framework/core/Oops';
 import { Battle } from '../../battle/Battle';
 import { UIID } from '../config/GameUIConfig';
 import { DraftModel } from '../model/DraftModel';
+import { PlayerModel } from '../model/PlayerModel';
+import { TableLevels } from '../table/TableLevels';
 
 /**
  * 界面导航
@@ -27,8 +29,18 @@ export class AppNav {
 
     /** 打开选将界面（进入战斗前的阵容选择） */
     static openDraft(levelId: number): void {
+        // 新手引导关为脚本化教学：首次进入时无需选将，直接进战斗，卡组初始为空，
+        // 由开场剧情依次「获得武将」后逐步加入卡槽；已通关重玩则正常选将
+        const level = TableLevels.get(levelId);
+        if (level?.guide === true && !PlayerModel.inst.isCleared(levelId)) {
+            this.startBattle(levelId);
+            return;
+        }
+
         DraftModel.setPending(levelId);
-        if (oops.gui.has(UIID.Draft)) oops.gui.remove(UIID.Draft);
+        // 注意：不能 remove 后同帧 open——框架 LayerUI.remove 不清 ui_nodes 记录，
+        // 立即重开会被 LayerUI.add 以「重复加载」拒绝（与切语言黑屏同源）
+        if (oops.gui.has(UIID.Draft)) return;
         oops.gui.open(UIID.Draft);
     }
 
@@ -48,6 +60,9 @@ export class AppNav {
 
     /** 打开设置弹层 */
     static openSettings(): void {
+        // 临时诊断：设置面板只有主界面卡片与暂停面板两个入口，
+        // 若在其他界面被拉起，这里会打印完整调用栈
+        console.trace('[三国塔防] openSettings 调用来源');
         if (oops.gui.has(UIID.Settings)) return;
         oops.gui.open(UIID.Settings);
     }

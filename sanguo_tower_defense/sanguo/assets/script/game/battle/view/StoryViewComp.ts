@@ -24,9 +24,7 @@ export class StoryViewComp extends GameComponent {
         this.lineCount = story != null ? story.lines.length : 0;
         this.index = 0;
 
-        ViewKit.text(this.node, 'panel/tap', ViewKit.lang('story_tap'));
-        ViewKit.text(this.node, 'btn_skip/label', ViewKit.lang('story_skip'));
-
+                
         ViewKit.click(ViewKit.get(this.node, 'dim'), () => this.next());
         ViewKit.click(ViewKit.get(this.node, 'panel'), () => this.next());
         ViewKit.click(ViewKit.get(this.node, 'btn_skip'), () => this.close());

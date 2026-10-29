@@ -660,15 +660,21 @@ class PrefabBuilder {
         }
 
         // 多语言：LanguageLabel（运行时按 dataID 覆盖文本，编辑器保留示例文案）
+        // lang 支持两种形式：'key' 或 { id, params: [[key, value], ...] }
         if (spec.lang) {
+            const langInfo = typeof spec.lang === 'string' ? { id: spec.lang } : spec.lang;
             this.addComponent({
                 __type__: FRAMEWORK.LanguageLabel,
                 _name: '',
                 _objFlags: 0,
                 __editorExtras__: {},
                 _enabled: true,
-                _dataID: spec.lang,
-                _params: [],
+                _dataID: langInfo.id,
+                _params: (langInfo.params ?? []).map(([key, value]) => ({
+                    __type__: 'LangLabelParamsItem',
+                    key,
+                    value,
+                })),
             }, nodeIndex, node);
         }
 
@@ -960,8 +966,10 @@ const C = {
 function button(name, text, w, h, x, y, opts = {}) {
     const primary = opts.primary === true;
     const shown = text !== '' ? text : (BTN_DEFAULTS[name] ?? '按钮');
+    const labelOpts = { bold: true };
+    if (opts.lang) labelOpts.lang = opts.lang;
     return sprite(name, primary ? 'tex_btn_primary' : 'tex_btn', w, h, { x, y }, [
-        label('label', shown, opts.size ?? 20, opts.textColor ?? (primary ? C.bgDeep : C.text), 0, 0, { bold: true }),
+        label('label', shown, opts.size ?? 20, opts.textColor ?? (primary ? C.bgDeep : C.text), 0, 0, labelOpts),
     ]);
 }
 
@@ -994,6 +1002,7 @@ const FRAMEWORK = (() => {
 
 const SCRIPTS = {
     MainViewModel: { file: 'main/MainViewModel.ts', uuid: uuidFrom('sanguo:script:MainViewModel') },
+    DraftViewModel: { file: 'main/DraftViewModel.ts', uuid: uuidFrom('sanguo:script:DraftViewModel') },
     MainViewComp: { file: 'main/MainViewComp.ts', uuid: uuidFrom('sanguo:script:MainViewComp') },
     LevelSelectViewComp: { file: 'main/LevelSelectViewComp.ts', uuid: uuidFrom('sanguo:script:LevelSelectViewComp') },
     CodexViewComp: { file: 'main/CodexViewComp.ts', uuid: uuidFrom('sanguo:script:CodexViewComp') },
@@ -1093,11 +1102,11 @@ function mainPrefab() {
 function storyPrefab() {
     return rootSpec('story', 'StoryViewComp', [
         sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 150, blockInput: true }),
-        button('btn_skip', '', 130, 46, 520, 300, { size: 16 }),
+        button('btn_skip', '', 130, 46, 520, 300, { size: 16, lang: 'story_skip' }),
         sprite('panel', 'tex_panel', 1120, 250, { y: -170, blockInput: true }, [
             label('speaker', '', 20, C.gold, -520, 84, { bold: true, align: 'left', ax: 0 }),
             label('text', '', 16, C.text, -520, 40, { align: 'left', ax: 0, ay: 1, wrap: true, width: 1040 }),
-            label('tap', '', 12, C.textMuted, 500, -100, { align: 'right', ax: 1 }),
+            label('tap', '', 12, C.textMuted, 500, -100, { align: 'right', ax: 1, lang: 'story_tap' }),
         ]),
     ]);
 }
@@ -1195,7 +1204,7 @@ function unitDetailPrefab() {
             label('stat5', '', 15, C.text, 0, -2),
             label('talent_name', '', 17, C.goldSoft, 0, -62, { bold: true }),
             label('talent_desc', '', 13, C.textDim, 0, -152, { wrap: true, width: 560, ay: 1 }),
-            button('btn_close', '', 240, 52, 0, -240, { primary: true, size: 19 }),
+            button('btn_close', '', 240, 52, 0, -240, { primary: true, size: 19, lang: 'detail_close' }),
         ]),
     ]);
 }
@@ -1205,33 +1214,33 @@ function helpPrefab() {
     return rootSpec('help', 'HelpViewComp', [
         sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 180, blockInput: true }),
         sprite('panel', 'tex_panel', 980, 600, {}, [
-            label('title', '', 32, C.gold, 0, 250, { bold: true }),
-            label('goal', '', 15, C.text, -440, 180, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880 }),
-            label('controls', '', 15, C.text, -440, 60, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880 }),
-            label('terms', '', 15, C.textDim, -440, -70, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880 }),
-            button('btn_close', '', 260, 54, 0, -252, { primary: true, size: 20 }),
+            label('title', '', 32, C.gold, 0, 250, { bold: true, lang: 'help_title' }),
+            label('goal', '', 15, C.text, -440, 180, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880, lang: 'help_goal' }),
+            label('controls', '', 15, C.text, -440, 60, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880, lang: 'help_controls' }),
+            label('terms', '', 15, C.textDim, -440, -70, { align: 'left', ax: 0, ay: 1, wrap: true, width: 880, lang: 'help_terms' }),
+            button('btn_close', '', 260, 54, 0, -252, { primary: true, size: 20, lang: 'help_close' }),
         ]),
     ]);
 }
 
 /** 军师计略 */
 function stratPrefab() {
-    const opt = (name, y, title, desc, cost) => sprite(`opt_${name}`, 'tex_panel_raise', 560, 84, { y }, [
-        label('name', title, 18, C.gold, -250, 18, { bold: true, align: 'left', ax: 0 }),
-        label('desc', desc, 13, C.textDim, -250, -16, { align: 'left', ax: 0, wrap: true, width: 380 }),
+    const opt = (name, y, title, desc, cost, nameKey, descKey) => sprite(`opt_${name}`, 'tex_panel_raise', 560, 84, { y }, [
+        label('name', title, 18, C.gold, -250, 18, { bold: true, align: 'left', ax: 0, lang: nameKey }),
+        label('desc', desc, 13, C.textDim, -250, -16, { align: 'left', ax: 0, wrap: true, width: 380, lang: descKey }),
         label('state', cost, 15, C.goldSoft, 250, 0, { bold: true, align: 'right', ax: 1 }),
     ]);
 
     return rootSpec('strat', 'StratViewComp', [
         sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 180, blockInput: true }),
         sprite('panel', 'tex_panel', 640, 520, {}, [
-            label('title', '', 30, C.gold, 0, 210, { bold: true }),
+            label('title', '', 30, C.gold, 0, 210, { bold: true, lang: 'strat_title' }),
             label('food', '', 14, C.textMuted, 0, 176),
-            opt('fire', 96, '火计', '全场敌军立即受到 300 点伤害', '粮 150'),
-            opt('gate', 6, '坚守', '城门耐久恢复 2 点', '粮 200'),
-            opt('slow', -84, '缓兵', '全场敌军减速 50%，持续 6 秒', '粮 100'),
-            label('hint', '', 12, C.textMuted, 0, -150),
-            button('btn_close', '', 240, 52, 0, -208, { primary: true, size: 19 }),
+            opt('fire', 96, '火计', '全场敌军立即受到 300 点伤害', '粮 150', 'strat_fire_name', 'strat_fire_desc'),
+            opt('gate', 6, '坚守', '城门耐久恢复 2 点', '粮 200', 'strat_gate_name', 'strat_gate_desc'),
+            opt('slow', -84, '缓兵', '全场敌军减速 50%，持续 6 秒', '粮 100', 'strat_slow_name', 'strat_slow_desc'),
+            label('hint', '', 12, C.textMuted, 0, -150, { lang: 'strat_hint' }),
+            button('btn_close', '', 240, 52, 0, -208, { primary: true, size: 19, lang: 'strat_close' }),
         ]),
     ]);
 }
@@ -1250,7 +1259,7 @@ function equipDetailPrefab() {
             label('desc', '', 13, C.textDim, 0, -46, { wrap: true, width: 520, ay: 1 }),
             label('status', '', 13, C.goldSoft, 0, -132),
             button('btn_action', '', 220, 52, 0, -186, { primary: true, size: 18 }),
-            button('btn_close', '', 220, 46, 0, -246, { size: 17 }),
+            button('btn_close', '', 220, 46, 0, -246, { size: 17, lang: 'detail_close' }),
         ]),
     ]);
 }
@@ -1260,21 +1269,23 @@ function draftPrefab() {
     return rootSpec('draft', 'DraftViewComp', [
         sprite('bg', 'tex_bg', 1280, 720, { color: '#FFFFFF' }),
         sprite('line_top', 'tex_solid', 1280, 2, { y: 336, color: C.gold, alpha: 60 }),
-        button('btn_back', '', 108, 46, -560, 296, { size: 18 }),
-        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
-        label('level_name', '', 20, C.goldSoft, 0, 232),
-        label('tip', '', 13, C.textMuted, 0, 196),
+        button('btn_back', '', 108, 46, -560, 296, { size: 18, lang: 'select_back' }),
+        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0, lang: 'draft_title' }),
+        label('level_name', '', 20, C.goldSoft, 0, 232, { vm: { path: '*.levelName' } }),
+        label('tip', '最多可选 8 名武将出战', 13, C.textMuted, 0, 196, {
+            lang: { id: 'draft_tip', params: [['0', '8']] },
+        }),
         node('grid', { x: 0, y: 20, w: 1020, h: 300 }, [
             // 示例条目（编辑器预览用，运行时 buildGrid 会先清空再填充）
             draftItemSpec('sample_1', { tag: '张', name: '张三', cost: '100', chip: '#A0524A' }),
             draftItemSpec('sample_2', { tag: '李', name: '李四', cost: '150', chip: '#5B8F5B' }),
             draftItemSpec('sample_3', { tag: '王', name: '王五', cost: '200', chip: '#4E6E9E' }),
         ]),
-        label('count', '', 16, C.goldSoft, 0, -198, { bold: true }),
-        button('btn_all', '', 170, 46, -300, -262, { size: 16 }),
-        button('btn_clear', '', 170, 46, -110, -262, { size: 16 }),
-        button('btn_start', '', 240, 56, 200, -262, { primary: true, size: 20 }),
-    ]);
+        label('count', '已选 3 / 8', 16, C.goldSoft, 0, -198, { bold: true, vm: { path: '*.countText' } }),
+        button('btn_all', '', 170, 46, -300, -262, { size: 16, lang: 'draft_all' }),
+        button('btn_clear', '', 170, 46, -110, -262, { size: 16, lang: 'draft_clear' }),
+        button('btn_start', '', 240, 56, 200, -262, { primary: true, size: 20, lang: 'draft_start' }),
+    ], [{ uuid: SCRIPTS.DraftViewModel.uuid }]);
 }
 
 /** 选将卡片（sample：编辑器示例数据，运行时覆盖） */
@@ -1298,15 +1309,15 @@ function draftItemPrefab() {
 /** 装备界面 */
 function equipPrefab() {
     const slot = (name, y) => sprite(name, 'tex_panel_raise', 480, 46, { y }, [
-        label('name', '', 15, C.text, -220, 0, { align: 'left', ax: 0 }),
+        label('name', '', 15, C.text, -220, 0, { align: 'left', ax: 0, lang: `equip_slot_${name.slice(5)}` }),
         label('value', '未装备', 13, C.goldSoft, 220, 0, { align: 'right', ax: 1 }),
     ]);
 
     return rootSpec('equip', 'EquipViewComp', [
         sprite('bg', 'tex_bg', 1280, 720, { color: '#FFFFFF' }),
         sprite('line_top', 'tex_solid', 1280, 2, { y: 336, color: C.gold, alpha: 60 }),
-        button('btn_back', '', 108, 46, -560, 296, { size: 18 }),
-        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
+        button('btn_back', '', 108, 46, -560, 296, { size: 18, lang: 'select_back' }),
+        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0, lang: 'equip_title' }),
         label('bag_count', '', 14, C.textMuted, 580, 296, { align: 'right', ax: 1 }),
         node('unit_list', { x: -400, y: -20, w: 380, h: 520 }, [
             // 示例行（运行时 buildUnits 会先清空再填充）
@@ -1322,7 +1333,7 @@ function equipPrefab() {
             slot('slot_horse', -8),
             slot('slot_treasure', -58),
             label('stats', '', 13, C.textDim, 0, -112, { wrap: true, width: 470 }),
-            label('hint', '', 12, C.textMuted, 0, -172),
+            label('hint', '', 12, C.textMuted, 0, -172, { lang: 'equip_hint' }),
         ]),
         node('bag_list', { x: 330, y: -258, w: 540, h: 190 }, [
             // 示例装备（运行时 buildBag 会先清空再填充）
@@ -1367,8 +1378,8 @@ function levelSelectPrefab() {
     return rootSpec('level_select', 'LevelSelectViewComp', [
         sprite('bg', 'tex_bg', 1280, 720, { color: '#FFFFFF' }),
         sprite('line_top', 'tex_solid', 1280, 2, { y: 336, color: C.gold, alpha: 60 }),
-        button('btn_back', '', 108, 46, -560, 296, { size: 18 }),
-        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
+        button('btn_back', '', 108, 46, -560, 296, { size: 18, lang: 'select_back' }),
+        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0, lang: 'select_title' }),
         label('stars_total', '', 22, C.goldSoft, 580, 296, { align: 'right', ax: 1 }),
         sprite('divider', 'tex_solid', 1160, 1, { y: 262, color: C.textMuted, alpha: 70 }),
         node('grid', { x: -515, y: 184, w: 810, h: 420 }, [
@@ -1385,13 +1396,13 @@ function levelSelectPrefab() {
             cond('cond1', 108),
             cond('cond2', 82),
             cond('cond3', 56),
-            label('enemies_title', '', 15, C.textMuted, -160, 12, { align: 'left', ax: 0 }),
+            label('enemies_title', '', 15, C.textMuted, -160, 12, { align: 'left', ax: 0, lang: 'select_enemies' }),
             node('enemies', { y: -28, w: 340, h: 60 }),
-            label('units_title', '', 15, C.textMuted, -160, -78, { align: 'left', ax: 0 }),
+            label('units_title', '', 15, C.textMuted, -160, -78, { align: 'left', ax: 0, lang: 'select_units' }),
             node('units', { y: -118, w: 340, h: 52 }),
-            label('tip', '', 13, C.textMuted, -160, -160, { align: 'left', ax: 0, ay: 1, wrap: true, width: 320 }),
+            label('tip', '', 13, C.textMuted, -160, -160, { align: 'left', ax: 0, ay: 1, wrap: true, width: 320, lang: 'select_tip' }),
         ]),
-        button('btn_start', '', 380, 66, 370, -238, { primary: true, size: 24 }),
+        button('btn_start', '', 380, 66, 370, -238, { primary: true, size: 24, lang: 'select_start' }),
     ]);
 }
 
@@ -1400,11 +1411,11 @@ function codexPrefab() {
     return rootSpec('codex', 'CodexViewComp', [
         sprite('bg', 'tex_bg', 1280, 720, { color: '#FFFFFF' }),
         sprite('line_top', 'tex_solid', 1280, 2, { y: 336, color: C.gold, alpha: 60 }),
-        button('btn_back', '', 108, 46, -560, 296, { size: 18 }),
-        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0 }),
-        label('tip', '', 14, C.textMuted, 580, 296, { align: 'right', ax: 1 }),
-        button('tab_unit', '', 236, 48, -500, 210, { size: 19 }),
-        button('tab_enemy', '', 236, 48, -240, 210, { size: 19 }),
+        button('btn_back', '', 108, 46, -560, 296, { size: 18, lang: 'codex_back' }),
+        label('title', '', 34, C.gold, -460, 296, { bold: true, align: 'left', ax: 0, lang: 'codex_title' }),
+        label('tip', '', 14, C.textMuted, 580, 296, { align: 'right', ax: 1, lang: 'codex_tip' }),
+        button('tab_unit', '', 236, 48, -500, 210, { size: 19, lang: 'codex_units' }),
+        button('tab_enemy', '', 236, 48, -240, 210, { size: 19, lang: 'codex_enemies' }),
         node('list', { x: -240, y: 20, w: 760, h: 420 }, [
             // 示例条目（运行时 refreshList 会先清空再填充）
             codexItemSpec('sample_c1', { tag: '张', name: '张三', kind: '武将', chip: '#A0524A' }),
@@ -1433,25 +1444,25 @@ function settingsPrefab() {
     return rootSpec('settings', 'SettingsViewComp', [
         sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 170, blockInput: true }),
         sprite('panel', 'tex_panel', 640, 540, {}, [
-            label('title', '', 30, C.gold, 0, 226, { bold: true }),
+            label('title', '', 30, C.gold, 0, 226, { bold: true, lang: 'settings_title' }),
             sprite('divider1', 'tex_solid', 560, 1, { y: 192, color: C.textMuted, alpha: 60 }),
-            label('music_label', '', 18, C.text, -280, 150, { align: 'left', ax: 0 }),
+            label('music_label', '', 18, C.text, -280, 150, { align: 'left', ax: 0, lang: 'settings_music' }),
             switchNode('music_switch', 236, 150),
             sliderNode('music_slider', -20, 116, 480),
-            label('sfx_label', '', 18, C.text, -280, 60, { align: 'left', ax: 0 }),
+            label('sfx_label', '', 18, C.text, -280, 60, { align: 'left', ax: 0, lang: 'settings_sfx' }),
             switchNode('sfx_switch', 236, 60),
             sliderNode('sfx_slider', -20, 26, 480),
             sprite('divider2', 'tex_solid', 560, 1, { y: 6, color: C.textMuted, alpha: 50 }),
-            label('auto_label', '', 18, C.text, -280, -30, { align: 'left', ax: 0 }),
+            label('auto_label', '', 18, C.text, -280, -30, { align: 'left', ax: 0, lang: 'settings_auto_collect' }),
             switchNode('auto_switch', 236, -30),
-            label('speed_label', '', 18, C.text, -280, -72, { align: 'left', ax: 0 }),
+            label('speed_label', '', 18, C.text, -280, -72, { align: 'left', ax: 0, lang: 'settings_default_speed' }),
             switchNode('speed_switch', 236, -72),
-            label('lang_label', '', 18, C.text, -280, -112, { align: 'left', ax: 0 }),
+            label('lang_label', '', 18, C.text, -280, -112, { align: 'left', ax: 0, lang: 'settings_language' }),
             button('btn_lang', '', 150, 44, 196, -112, { size: 17 }),
             sprite('divider3', 'tex_solid', 560, 1, { y: -146, color: C.textMuted, alpha: 50 }),
             button('btn_clear', '', 220, 48, -240, -186, { size: 17 }),
             label('version', '', 13, C.textMuted, 290, -186, { align: 'right', ax: 1 }),
-            button('btn_close', '', 260, 54, 0, -232, { primary: true, size: 20 }),
+            button('btn_close', '', 260, 54, 0, -232, { primary: true, size: 20, lang: 'settings_close' }),
         ]),
     ]);
 }
@@ -1486,8 +1497,8 @@ function battlePrefab() {
     }
 
     // 参考稿布局：左侧栏（粮草/斩获 → 竖排卡槽 → 操作按钮）+ 右侧（细顶栏 + 战场）
-    const railBtn = (name, x, y) => sprite(name, 'tex_btn_gold', 64, 42, { x, y }, [
-        label('label', RAIL_DEFAULTS[name] ?? '按钮', 13, '#3A2408', 0, 0, { bold: true }),
+    const railBtn = (name, x, y, langKey) => sprite(name, 'tex_btn_gold', 64, 42, { x, y }, [
+        label('label', RAIL_DEFAULTS[name] ?? '按钮', 13, '#3A2408', 0, 0, { bold: true, lang: langKey }),
     ]);
 
     return rootSpec('battle', 'BattleViewComp', [
@@ -1508,12 +1519,12 @@ function battlePrefab() {
             cardSpec('sample_card_1', { tag: '张', name: '张三', cost: '100', chip: '#A0524A' }),
             cardSpec('sample_card_2', { tag: '李', name: '李四', cost: '150', chip: '#5B8F5B' }),
         ]),
-        railBtn('btn_retreat', -596, -286),
-        railBtn('btn_cancel', -530, -286),
-        railBtn('btn_pause', -464, -286),
+        railBtn('btn_retreat', -596, -286, 'battle_retreat'),
+        railBtn('btn_cancel', -530, -286, 'battle_cancel'),
+        railBtn('btn_pause', -464, -286, 'battle_pause'),
         railBtn('btn_speed', -596, -334),
-        railBtn('btn_mute', -530, -334),
-        railBtn('btn_help', -464, -334),
+        railBtn('btn_mute', -530, -334, 'battle_mute'),
+        railBtn('btn_help', -464, -334, 'battle_help'),
         //#endregion
 
         //#region 顶栏：关卡 / 波次 / 余敌 / 波次进度 / 城门
@@ -1523,13 +1534,13 @@ function battlePrefab() {
             label('remain_text', '', 12, '#F0C060', -216, 0, { align: 'left', ax: 0 }),
             sprite('wave_bar_bg', 'tex_solid', 210, 12, { x: -40, y: 0, color: '#20100A' }),
             sprite('wave_fill', 'tex_solid', 210, 12, { x: -145, y: 0, ax: 0, color: '#6AD06A' }),
-            label('gate_label', '城门', 12, C.textDim, 112, 0),
+            label('gate_label', '城门', 12, C.textDim, 112, 0, { lang: 'battle_gate' }),
             sprite('gate_bar_bg', 'tex_solid', 120, 12, { x: 196, y: 0, color: '#20100A' }),
             sprite('gate_fill', 'tex_solid', 120, 12, { x: 136, y: 0, ax: 0, color: '#E8B84A' }),
             label('gate_value', '', 13, '#F4D98A', 288, 0, { bold: true }),
             node('wave_flags', { x: -40, y: 0, w: 210, h: 18 }),
             label('next_wave', '', 10, '#9FD0A0', -40, -16, { align: 'left', ax: 0 }),
-            button('btn_strat', '', 108, 36, 420, 0, { size: 14 }),
+            button('btn_strat', '', 108, 36, 420, 0, { size: 14, lang: 'battle_strat' }),
         ]),
         //#endregion
 
@@ -1575,13 +1586,13 @@ function pausePrefab() {
     return rootSpec('pause', 'PauseViewComp', [
         sprite('dim', 'tex_solid', 1280, 720, { color: '#000000', alpha: 180, blockInput: true }),
         sprite('panel', 'tex_panel', 520, 480, {}, [
-            label('title', '', 32, C.gold, 0, 190, { bold: true }),
+            label('title', '', 32, C.gold, 0, 190, { bold: true, lang: 'pause_title' }),
             label('wave_text', '', 15, C.textDim, 0, 150),
             sprite('divider', 'tex_solid', 440, 1, { y: 120, color: C.textMuted, alpha: 60 }),
-            button('btn_resume', '', 360, 58, 0, 60, { primary: true, size: 22 }),
-            button('btn_restart', '', 360, 54, 0, -12, { size: 20 }),
-            button('btn_settings', '', 360, 54, 0, -78, { size: 20 }),
-            button('btn_quit', '', 360, 54, 0, -144, { size: 20 }),
+            button('btn_resume', '', 360, 58, 0, 60, { primary: true, size: 22, lang: 'pause_resume' }),
+            button('btn_restart', '', 360, 54, 0, -12, { size: 20, lang: 'pause_restart' }),
+            button('btn_settings', '', 360, 54, 0, -78, { size: 20, lang: 'pause_settings' }),
+            button('btn_quit', '', 360, 54, 0, -144, { size: 20, lang: 'pause_quit' }),
         ]),
     ]);
 }
@@ -1598,9 +1609,9 @@ function resultPrefab() {
             label('time', '', 16, C.textDim, 0, 36),
             label('unlock', '', 16, C.goldSoft, 0, 4),
             label('drop', '', 15, '#8FB8FF', 0, -36, { bold: true }),
-            button('btn_retry', '', 200, 52, -108, -96, { size: 19 }),
-            button('btn_next', '', 200, 52, 108, -96, { primary: true, size: 19 }),
-            button('btn_home', '', 300, 50, 0, -170, { size: 18 }),
+            button('btn_retry', '', 200, 52, -108, -96, { size: 19, lang: 'result_retry' }),
+            button('btn_next', '', 200, 52, 108, -96, { primary: true, size: 19, lang: 'result_next' }),
+            button('btn_home', '', 300, 50, 0, -170, { size: 18, lang: 'result_home' }),
         ]),
     ]);
 }

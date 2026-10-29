@@ -1,7 +1,7 @@
 [
   {
     "id": "l1_1",
-    "at": 6,
+    "at": 4,
     "groups": [
       {
         "enemy": "minfu",
@@ -13,33 +13,33 @@
   },
   {
     "id": "l1_2",
-    "at": 42,
+    "at": 18,
     "groups": [
       {
         "enemy": "yibing",
         "row": -1,
         "count": 3,
-        "interval": 4
+        "interval": 2.5
       }
     ]
   },
   {
     "id": "l1_3",
-    "at": 82,
+    "at": 32,
     "big": true,
     "groups": [
       {
         "enemy": "tuntian",
         "row": -1,
         "count": 2,
-        "interval": 4
+        "interval": 2.5
       },
       {
         "enemy": "inf",
         "row": -1,
         "count": 2,
-        "interval": 4,
-        "delay": 2
+        "interval": 2.5,
+        "delay": 1.5
       }
     ]
   },

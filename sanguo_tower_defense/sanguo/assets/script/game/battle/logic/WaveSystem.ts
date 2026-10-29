@@ -44,7 +44,7 @@ export class WaveSystem {
 
             group.timer -= dt;
             while (group.remaining > 0 && group.timer <= 0) {
-                const row = group.row < 0 ? Math.floor(Math.random() * model.grid.rows) : group.row;
+                const row = this.pickRow(model, group.row);
                 EnemySystem.spawn(model, group.enemy, row);
                 group.remaining -= 1;
                 group.timer += Math.max(0.05, group.interval);
@@ -109,5 +109,16 @@ export class WaveSystem {
     static nextWaveTime(model: BattleModel): number {
         if (model.waveCursor >= model.waves.length) return -1;
         return model.waves[model.waveCursor].at + model.waveHoldTime;
+    }
+
+    /**
+     * 选择出生行：指定行（>=0）直接使用；随机行（<0）只在「可通行走廊」里挑，
+     * 避免敌军刷在高山 / 激流等被地形封死的「其它道路」上。
+     */
+    private static pickRow(model: BattleModel, row: number): number {
+        if (row >= 0) return row;
+        const lanes = model.grid.lanes();
+        if (lanes.length > 0) return lanes[Math.floor(Math.random() * lanes.length)];
+        return Math.floor(Math.random() * model.grid.rows);
     }
 }

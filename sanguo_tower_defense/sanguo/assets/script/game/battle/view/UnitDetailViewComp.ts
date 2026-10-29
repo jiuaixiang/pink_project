@@ -43,8 +43,7 @@ export class UnitDetailViewComp extends GameComponent {
             ? `${ViewKit.lang('codex_talent')}【${cfg.talent.name}】`
             : ViewKit.lang('detail_no_talent'));
         ViewKit.text(root, 'panel/talent_desc', ViewKit.lang(cfg.descKey));
-        ViewKit.text(root, 'panel/btn_close/label', ViewKit.lang('detail_close'));
-
+        
         ViewKit.click(ViewKit.get(root, 'panel/btn_close'), () => this.close());
     }
 

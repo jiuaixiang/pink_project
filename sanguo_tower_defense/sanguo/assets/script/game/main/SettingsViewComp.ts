@@ -55,15 +55,8 @@ export class SettingsViewComp extends GameComponent {
         const root = this.node;
         const settings = SettingsModel.inst;
 
-        ViewKit.text(root, 'panel/title', ViewKit.lang('settings_title'));
-        ViewKit.text(root, 'panel/music_label', ViewKit.lang('settings_music'));
-        ViewKit.text(root, 'panel/sfx_label', ViewKit.lang('settings_sfx'));
-        ViewKit.text(root, 'panel/auto_label', ViewKit.lang('settings_auto_collect'));
-        ViewKit.text(root, 'panel/speed_label', ViewKit.lang('settings_default_speed'));
-        ViewKit.text(root, 'panel/lang_label', ViewKit.lang('settings_language'));
-        ViewKit.text(root, 'panel/btn_lang/label', settings.language === 'zh' ? '中文' : 'English');
-        ViewKit.text(root, 'panel/btn_close/label', ViewKit.lang('settings_close'));
-        ViewKit.text(root, 'panel/version', ViewKit.lang('settings_version', oops.config.game.version, version));
+                                                        ViewKit.text(root, 'panel/btn_lang/label', settings.language === 'zh' ? '中文' : 'English');
+                ViewKit.text(root, 'panel/version', ViewKit.lang('settings_version', oops.config.game.version, version));
 
         if (this.clearConfirm) ViewKit.text(root, 'panel/btn_clear/label', ViewKit.lang('settings_clear_confirm'));
         else ViewKit.text(root, 'panel/btn_clear/label', ViewKit.lang('settings_clear'));

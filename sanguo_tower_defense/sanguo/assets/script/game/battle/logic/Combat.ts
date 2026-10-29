@@ -1,5 +1,6 @@
 import type { IEnemyInst, IUnitInst } from './Actor';
 import type { BattleModel } from './BattleModel';
+import { BattleFx } from './BattleFx';
 
 /** 战斗结算公共逻辑：伤害、爆炸、清行 */
 export class Combat {
@@ -39,6 +40,9 @@ export class Combat {
             enemy.alive = false;
             model.kills += 1;
             model.addEffect({ kind: 'die', row: enemy.row, x: enemy.x });
+            // 击杀碎片 + 死亡烟雾 + 斩杀屏震
+            BattleFx.die(model, enemy.x, enemy.row);
+            BattleFx.shake(model, 6);
 
             // 击杀基础掉粮 + 民夫 / 辎重车劫粮
             const gold = (model.gameplay.killGold ?? 0) + (enemy.cfg.loot ?? 0);
@@ -56,6 +60,12 @@ export class Combat {
                 model.addFood(bonus);
                 model.addEffect({ kind: 'food', row: enemy.row, x: enemy.x, value: bonus });
             }
+        }
+        else if (amount >= 1) {
+            // 命中冲击 + 飞溅碎片（参考稿 impact / shard）
+            const col = color ?? '#F2E6D0';
+            BattleFx.impact(model, enemy.x, enemy.row, col, false);
+            BattleFx.shards(model, enemy.x, enemy.row, 3, ['#e8d7b0', '#c9b184', '#a8915f']);
         }
     }
 

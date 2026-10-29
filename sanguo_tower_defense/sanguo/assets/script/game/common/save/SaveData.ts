@@ -47,6 +47,8 @@ export interface ISaveData {
     bestWave: number;
     /** 已获得的装备 id（可重复） */
     bag: string[];
+    /** 已获得的武将 / 器械花名册（引导授予、选将、通关均收入） */
+    units?: string[];
     /** 武将穿戴：unitId -> slot -> equipId */
     wearing: Record<string, Record<string, string>>;
     /** 设置数据 */
@@ -77,6 +79,7 @@ export function createDefaultSave(): ISaveData {
         guideDone: false,
         bestWave: 0,
         bag: [],
+        units: [],
         wearing: {},
         settings: createDefaultSettings(),
     };

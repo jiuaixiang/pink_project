@@ -69,9 +69,66 @@ export class ProjectileSystem {
         model.projectiles.push(inst);
     }
 
+    /** 敌方远程：仅表现弹道（伤害已在 EnemySystem 即时结算），朝左飞 */
+    static spawnEnemyVisual(
+        model: BattleModel,
+        row: number,
+        startX: number,
+        targetX: number,
+        color: string,
+        arc = false,
+    ): void {
+        const cfg: IProjectileConfig = {
+            id: '__enemy',
+            kind: arc ? ProjectileKind.Arc : ProjectileKind.Line,
+            speed: 7,
+            color,
+            width: arc ? 9 : 5,
+            visual: arc ? 'stone' : 'arrow',
+            tail: !arc,
+        };
+        const distance = Math.max(0.5, Math.abs(targetX - startX));
+        const inst: IProjectileInst = {
+            uid: model.nextUid(),
+            cfg,
+            row,
+            x: startX,
+            targetX,
+            progress: 0,
+            startX,
+            duration: distance / Math.max(0.5, cfg.speed),
+            damage: 0,
+            slow: 0,
+            slowDuration: 0,
+            pierce: false,
+            hitUids: [],
+            crit: false,
+            hostile: true,
+            alive: true,
+        };
+        model.projectiles.push(inst);
+    }
+
     static update(model: BattleModel, dt: number): void {
         for (const p of model.projectiles) {
             if (!p.alive) continue;
+
+            // 敌方弹道：只做位移表现，不做命中结算
+            if (p.hostile === true) {
+                if (p.cfg.kind === ProjectileKind.Arc) {
+                    p.progress += dt / Math.max(0.15, p.duration);
+                    if (p.progress >= 1) {
+                        p.alive = false;
+                        continue;
+                    }
+                    p.x = p.startX + (p.targetX - p.startX) * p.progress;
+                }
+                else {
+                    p.x -= p.cfg.speed * dt;
+                    if (p.x <= p.targetX - 0.1) p.alive = false;
+                }
+                continue;
+            }
 
             if (p.cfg.kind === ProjectileKind.Arc) {
                 p.progress += dt / Math.max(0.15, p.duration);

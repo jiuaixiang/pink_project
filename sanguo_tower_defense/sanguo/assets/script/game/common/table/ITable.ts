@@ -113,6 +113,8 @@ export interface IUnitConfig {
     color: string;
     /** 正式美术资源路径（可选，占位阶段为空） */
     icon?: string;
+    /** 立绘肖像图路径（相对 bundle，缺省用程序化剪影） */
+    portrait?: string;
 
     /** 攻击力（射击 / 抛射） */
     atk?: number;
@@ -172,6 +174,8 @@ export interface IEnemyConfig {
     color: string;
     /** 正式美术资源路径（可选） */
     icon?: string;
+    /** 立绘肖像图路径（相对 bundle，缺省用程序化剪影） */
+    portrait?: string;
     /** 体型缩放 */
     size?: number;
     /** 是否为 Boss */
@@ -220,6 +224,9 @@ export enum ProjectileKind {
     Arc = 'arc',
 }
 
+/** 弹道美术样式 */
+export type ProjectileVisual = 'arrow' | 'knife' | 'boomerang' | 'stone' | 'orb';
+
 /** 弹道配置 */
 export interface IProjectileConfig {
     id: string;
@@ -235,6 +242,12 @@ export interface IProjectileConfig {
     slow?: number;
     /** 减速持续（秒） */
     slowDuration?: number;
+    /** 美术样式（缺省按 kind 推断：line→arrow，arc→stone） */
+    visual?: ProjectileVisual;
+    /** 回旋镖自转角速度（弧度/秒） */
+    spin?: number;
+    /** 是否拖尾 */
+    tail?: boolean;
 }
 
 /** 波次中的出兵分组 */

@@ -22,12 +22,7 @@ export class PauseViewComp extends GameComponent {
         const root = this.node;
         if (this.levelId <= 0 && Battle.current != null) this.levelId = Battle.current.levelId;
 
-        ViewKit.text(root, 'panel/title', ViewKit.lang('pause_title'));
-        ViewKit.text(root, 'panel/btn_resume/label', ViewKit.lang('pause_resume'));
-        ViewKit.text(root, 'panel/btn_restart/label', ViewKit.lang('pause_restart'));
-        ViewKit.text(root, 'panel/btn_settings/label', ViewKit.lang('pause_settings'));
-        ViewKit.text(root, 'panel/btn_quit/label', ViewKit.lang('pause_quit'));
-
+                                        
         const battle = Battle.current;
         const model = battle?.model ?? null;
         if (model != null) {

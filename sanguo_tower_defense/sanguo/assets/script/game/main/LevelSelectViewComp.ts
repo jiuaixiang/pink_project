@@ -41,14 +41,8 @@ export class LevelSelectViewComp extends GameComponent {
         this.grid = ViewKit.get(root, 'grid');
         this.detail = ViewKit.get(root, 'detail');
 
-        ViewKit.text(root, 'btn_back/label', ViewKit.lang('select_back'));
-        ViewKit.text(root, 'title', ViewKit.lang('select_title'));
-        ViewKit.text(root, 'btn_start/label', ViewKit.lang('select_start'));
-        ViewKit.text(root, 'stars_total', `★ ${PlayerModel.inst.totalStars} / ${PlayerModel.inst.maxStars}`);
-        ViewKit.text(root, 'detail/enemies_title', ViewKit.lang('select_enemies'));
-        ViewKit.text(root, 'detail/units_title', ViewKit.lang('select_units'));
-        ViewKit.text(root, 'detail/tip', ViewKit.lang('select_tip'));
-
+                                ViewKit.text(root, 'stars_total', `★ ${PlayerModel.inst.totalStars} / ${PlayerModel.inst.maxStars}`);
+                        
         ViewKit.click(ViewKit.get(root, 'btn_back'), () => {
             oops.gui.remove(UIID.LevelSelect);
         });

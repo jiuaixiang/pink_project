@@ -2,7 +2,9 @@ import type { IEnemyConfig } from '../../common/table/ITable';
 import { TableEnemies } from '../../common/table/TableEnemies';
 import type { IEnemyInst, IUnitInst } from './Actor';
 import type { BattleModel } from './BattleModel';
+import { BattleFx } from './BattleFx';
 import { Combat } from './Combat';
+import { ProjectileSystem } from './ProjectileSystem';
 
 /**
  * 敌军系统
@@ -187,6 +189,13 @@ export class EnemySystem {
             value: Math.round(total),
             color: '#C0392B',
         });
+
+        // 可见弹道 + 枪口特效：抛射走弧线抛石，行进射击走直线箭矢
+        const isArc = enemy.cfg.lob != null;
+        const startX = enemy.x - 0.2;
+        const tx = model.grid.colCenter(target.col);
+        ProjectileSystem.spawnEnemyVisual(model, enemy.row, startX, tx, isArc ? '#B9A98E' : '#F2E6D0', isArc);
+        BattleFx.muzzle(model, startX, enemy.row, isArc ? '#B9A98E' : '#F2E6D0', Math.PI);
     }
 
     /** 本行最靠城门（最左列）的存活武将 */

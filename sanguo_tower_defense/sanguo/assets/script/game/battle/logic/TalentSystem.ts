@@ -1,7 +1,28 @@
 import type { ITalentConfig } from '../../common/table/ITable';
+import { TalentKind } from '../../common/table/ITable';
 import type { IEnemyInst, IUnitInst } from './Actor';
 import type { BattleModel } from './BattleModel';
 import { Combat } from './Combat';
+import { BattleFx } from './BattleFx';
+
+/** 各天赋主题色（对齐历史 castTalent 的主题色） */
+const TALENT_COLOR: Record<string, string> = {
+    roar: '#a070ff',
+    bagua: '#c8e8ff',
+    immolate: '#ff6a20',
+    burnRow: '#ff6a20',
+    crush: '#e8c060',
+    devour: '#3ad0c0',
+    sweep: '#c04040',
+    thunder: '#7ab0e0',
+    rally: '#e0c060',
+    luoshui: '#d0f0f8',
+    ambush: '#c8e0a0',
+    fury: '#c08a3a',
+};
+
+/** 命中时接屏震的大范围天赋 */
+const BIG_TALENTS = ['roar', 'sweep', 'thunder', 'immolate', 'burnRow', 'fury', 'bagua'];
 
 /**
  * 武将天赋系统
@@ -61,10 +82,33 @@ export class TalentSystem {
         unit.talentTimer = success ? Math.max(0.5, talent.cd) : 0.3;
     }
 
-    /** 执行一次天赋，返回是否成功（无目标时失败，短间隔重试） */
+    /** 执行一次天赋：成功后补起手动作 / 技能播报 / 屏震 */
     private static cast(model: BattleModel, unit: IUnitInst, talent: ITalentConfig): boolean {
         const center = model.grid.colCenter(unit.col);
+        const ok = this.doCast(model, unit, talent, center);
+        if (ok) this.beginCast(model, unit, talent, center);
+        return ok;
+    }
 
+    /** 天赋起手：按 dtype 播放挥兵 / 聚能 / 喊声，并播报技能名 + 分级屏震 */
+    private static beginCast(model: BattleModel, unit: IUnitInst, talent: ITalentConfig, center: number): void {
+        const color = TALENT_COLOR[talent.id] ?? '#ffd870';
+        if (talent.dtype === TalentKind.Blade) {
+            BattleFx.slash(model, center, unit.row, color, 1.5, Math.PI * 0.9, 0);
+        }
+        else if (talent.dtype === TalentKind.Magic) {
+            BattleFx.castaura(model, center, unit.row, color, 0.7);
+        }
+        else {
+            BattleFx.castaura(model, center, unit.row, color, 0.9);
+            BattleFx.shout(model, center, unit.row, color, 1.4);
+        }
+        model.addEffect({ kind: 'skill', row: unit.row, x: center, name: talent.name, who: unit.cfg.id, color });
+        if (BIG_TALENTS.indexOf(talent.id) >= 0) BattleFx.shake(model, 6);
+    }
+
+    /** 天赋实际结算（无目标时返回 false，短间隔重试） */
+    private static doCast(model: BattleModel, unit: IUnitInst, talent: ITalentConfig, center: number): boolean {
         switch (talent.id) {
             case 'roar':
                 return this.roar(model, unit, talent, center);
@@ -74,11 +118,15 @@ export class TalentSystem {
                 // 自爆类：范围内无敌人时不自焚，等下一轮
                 if (!this.hasEnemyNear(model, unit, center, talent.radius ?? 1.2, 1)) return false;
                 Combat.explode(model, unit.row, center, talent.radius ?? 1.2, talent.damage ?? 1800, 1);
+                BattleFx.fire(model, center, unit.row, talent.radius ?? 1.2, '#ff6a20');
+                BattleFx.line(model, center, unit.row, 4.6, '#ff6a20', false);
                 Combat.removeUnit(model, unit);
                 return true;
             case 'burnRow':
                 if (!this.hasEnemyNear(model, unit, 4.5, 6, 0)) return false;
                 Combat.rowClear(model, unit.row, talent.damage ?? 1800);
+                BattleFx.line(model, center, unit.row, 6, '#ff6a20', false);
+                BattleFx.fire(model, center, unit.row, 1.3, '#ff6a20');
                 Combat.removeUnit(model, unit);
                 return true;
             case 'crush':
@@ -90,16 +138,18 @@ export class TalentSystem {
             case 'thunder':
                 return this.thunder(model, unit, talent);
             case 'rally':
-                this.rally(model, talent);
+                this.rally(model, unit, talent, center);
                 return true;
             case 'luoshui':
-                this.luoshui(model, talent);
+                this.luoshui(model, unit, talent, center);
                 return true;
             case 'ambush':
                 return this.ambush(model, unit, talent, center);
             case 'fury':
                 if (!this.hasEnemyNear(model, unit, center, talent.radius ?? 1.5, 1)) return false;
                 Combat.explode(model, unit.row, center, talent.radius ?? 1.5, talent.damage ?? 1800, 1);
+                BattleFx.fire(model, center, unit.row, talent.radius ?? 1.5, '#ff6a20');
+                BattleFx.line(model, center, unit.row, 4.6, '#ff6a20', false);
                 Combat.removeUnit(model, unit);
                 return true;
             default:
@@ -121,6 +171,7 @@ export class TalentSystem {
         }
         if (!hit) return false;
         model.addEffect({ kind: 'explosion', row: unit.row, x: center + 1, radius: reach });
+        BattleFx.shockwave(model, center + 1, unit.row, '#a070ff', reach);
         return true;
     }
 
@@ -139,6 +190,9 @@ export class TalentSystem {
             enemy.slowFactor = Math.min(enemy.slowFactor, 1 - (talent.slow ?? 0.5));
         }
         model.addEffect({ kind: 'explosion', row: unit.row, x: target.x, radius });
+        BattleFx.cast(model, center, unit.row, '#c8e8ff', target.x);
+        BattleFx.castaura(model, target.x, unit.row, '#c8e8ff', radius + 0.3);
+        BattleFx.bagua(model, target.x, unit.row, '#c8e8ff', radius);
         return true;
     }
 
@@ -149,6 +203,7 @@ export class TalentSystem {
 
         Combat.damageEnemy(model, target, talent.damage ?? 2000, '#D9A441');
         model.addEffect({ kind: 'explosion', row: unit.row, x: target.x, radius: 0.6 });
+        BattleFx.impact(model, target.x, unit.row, '#D9A441', false);
         Combat.removeUnit(model, unit);
         return true;
     }
@@ -161,6 +216,7 @@ export class TalentSystem {
         Combat.damageEnemy(model, target, talent.damage ?? 2200, '#C0392B');
         unit.chewTimer = Math.max(4, talent.cd);
         model.addEffect({ kind: 'explosion', row: unit.row, x: target.x, radius: 0.5 });
+        BattleFx.impact(model, target.x, unit.row, '#C0392B', false);
         return true;
     }
 
@@ -175,6 +231,7 @@ export class TalentSystem {
             enemy.slowFactor = Math.min(enemy.slowFactor, 1 - (talent.slow ?? 0.5));
         }
         model.addEffect({ kind: 'explosion', row: unit.row, x: 4.5, radius: 5 });
+        BattleFx.castaura(model, 4.5, 2.5, '#7FB4D8', 5);
         return true;
     }
 
@@ -187,30 +244,36 @@ export class TalentSystem {
             Combat.damageEnemy(model, enemy, talent.damage ?? 25, '#9FB8FF');
             hit = true;
         }
-        if (hit) model.addEffect({ kind: 'explosion', row: unit.row, x: 4.5, radius: 5 });
+        if (hit) {
+            model.addEffect({ kind: 'explosion', row: unit.row, x: 4.5, radius: 5 });
+            BattleFx.castaura(model, 4.5, unit.row, '#9FB8FF', 2.6);
+        }
         return hit;
     }
 
     /** 曹操·奸雄：全军攻击 +25%（6 秒） */
-    private static rally(model: BattleModel, talent: ITalentConfig): void {
+    private static rally(model: BattleModel, unit: IUnitInst, talent: ITalentConfig, center: number): void {
         const buff = 1 + (talent.atkBuff ?? 0.25);
         for (const ally of model.units) {
             if (!ally.alive) continue;
             ally.atkBuffMul = Math.max(ally.atkBuffMul, buff);
             ally.atkBuffTimer = Math.max(ally.atkBuffTimer, talent.duration ?? 6);
         }
-        model.addEffect({ kind: 'shout', row: 0, x: 4.5 });
+        BattleFx.shout(model, center, unit.row, '#e0c060', 1.6);
+        model.addEffect({ kind: 'explosion', row: unit.row, x: center, radius: 1.3 });
     }
 
     /** 甄姬·洛神：全军回血 15% 并获得 20% 减伤（5 秒） */
-    private static luoshui(model: BattleModel, talent: ITalentConfig): void {
+    private static luoshui(model: BattleModel, unit: IUnitInst, talent: ITalentConfig, center: number): void {
         for (const ally of model.units) {
             if (!ally.alive) continue;
-            ally.hp = Math.min(ally.maxHp, ally.hp + ally.maxHp * (talent.heal ?? 0.15));
+            const amt = ally.maxHp * (talent.heal ?? 0.15);
+            ally.hp = Math.min(ally.maxHp, ally.hp + amt);
             ally.drMul = Math.min(ally.drMul, 1 - (talent.dr ?? 0.2));
             ally.drTimer = Math.max(ally.drTimer, talent.duration ?? 5);
         }
-        model.addEffect({ kind: 'shout', row: 0, x: 4.5 });
+        BattleFx.shout(model, center, unit.row, '#d0f0f8', 1.6);
+        model.addEffect({ kind: 'explosion', row: unit.row, x: center, radius: 1.3 });
     }
 
     /** 姜维·伏兵：最前之敌踏入埋伏圈即受创并眩晕 */
@@ -221,6 +284,8 @@ export class TalentSystem {
         Combat.damageEnemy(model, target, talent.damage ?? 1800, '#5B8F5B');
         target.stunTimer = Math.max(target.stunTimer, talent.stun ?? 2.5);
         model.addEffect({ kind: 'explosion', row: unit.row, x: target.x, radius: 0.55 });
+        BattleFx.cast(model, center, unit.row, '#c8e0a0', target.x);
+        BattleFx.impact(model, target.x, unit.row, '#5B8F5B', false);
         return true;
     }
 

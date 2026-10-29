@@ -35,7 +35,7 @@
     "color": "#A0524A",
     "atk": 20,
     "interval": 1.4,
-    "projectile": "arrow",
+    "projectile": "knife",
     "volley": 1,
     "rows": 1,
     "talent": { "id": "slash", "name": "奋短兵", "cd": 1.4, "dtype": "blade" }
@@ -191,7 +191,7 @@
     "color": "#5B8F5B",
     "atk": 20,
     "interval": 1.6,
-    "projectile": "arrow",
+    "projectile": "boomerang",
     "volley": 1,
     "rows": 1,
     "pierce": true,

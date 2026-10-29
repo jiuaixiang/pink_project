@@ -4,14 +4,18 @@
     "kind": "line",
     "speed": 7,
     "color": "#F2E6D0",
-    "width": 5
+    "width": 5,
+    "visual": "arrow",
+    "tail": true
   },
   {
     "id": "iceArrow",
     "kind": "line",
     "speed": 7,
-    "color": "#3D6E8F",
+    "color": "#7FC8E8",
     "width": 5,
+    "visual": "arrow",
+    "tail": true,
     "slow": 0.5,
     "slowDuration": 4
   },
@@ -21,6 +25,26 @@
     "speed": 3.2,
     "color": "#B9A98E",
     "width": 10,
+    "visual": "stone",
     "splash": 0.6
+  },
+  {
+    "id": "knife",
+    "kind": "line",
+    "speed": 8,
+    "color": "#FF9A5A",
+    "width": 6,
+    "visual": "knife",
+    "tail": true
+  },
+  {
+    "id": "boomerang",
+    "kind": "line",
+    "speed": 6.5,
+    "color": "#CFD8E6",
+    "width": 7,
+    "visual": "boomerang",
+    "spin": 20,
+    "tail": true
   }
 ]

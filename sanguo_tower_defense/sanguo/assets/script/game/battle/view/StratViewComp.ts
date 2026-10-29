@@ -34,14 +34,9 @@ export class StratViewComp extends GameComponent {
         }
 
         const root = this.node;
-        ViewKit.text(root, 'panel/title', ViewKit.lang('strat_title'));
-        ViewKit.text(root, 'panel/hint', ViewKit.lang('strat_hint'));
-        ViewKit.text(root, 'panel/btn_close/label', ViewKit.lang('strat_close'));
-
+                        
         for (const option of OPTIONS) {
             const path = `panel/opt_${option.id}`;
-            ViewKit.text(root, `${path}/name`, ViewKit.lang(`strat_${option.id}_name`));
-            ViewKit.text(root, `${path}/desc`, ViewKit.lang(`strat_${option.id}_desc`));
             ViewKit.click(ViewKit.get(root, path), () => this.use(option));
         }
 

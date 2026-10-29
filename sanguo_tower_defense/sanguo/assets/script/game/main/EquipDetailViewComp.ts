@@ -44,8 +44,7 @@ export class EquipDetailViewComp extends GameComponent {
         const worn = PlayerModel.inst.wearingOf(this.unitId)[cfg.slot] === cfg.id;
         ViewKit.text(root, 'panel/status', ViewKit.lang(worn ? 'equip_status_worn' : 'equip_status_idle'));
         ViewKit.text(root, 'panel/btn_action/label', ViewKit.lang(worn ? 'equip_action_unequip' : 'equip_action_equip'));
-        ViewKit.text(root, 'panel/btn_close/label', ViewKit.lang('detail_close'));
-
+        
         ViewKit.click(ViewKit.get(root, 'panel/btn_action'), () => {
             if (worn) {
                 PlayerModel.inst.unequip(this.unitId, cfg.slot);

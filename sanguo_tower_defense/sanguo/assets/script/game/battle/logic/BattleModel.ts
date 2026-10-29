@@ -2,7 +2,7 @@ import type { IBondConfig, IGameplayConfig, ILevelConfig, IWaveConfig } from '..
 import { TableBonds } from '../../common/table/TableBonds';
 import { TableGameplay } from '../../common/table/TableGameplay';
 import { TableWaves } from '../../common/table/TableWaves';
-import type { IBattleEffect, IEnemyInst, IFoodDrop, IMower, IProjectileInst, IRuntimeGroup, IUnitInst } from './Actor';
+import type { IBattleEffect, IBattleFx, IEnemyInst, IFoodDrop, IMower, IProjectileInst, IRuntimeGroup, IUnitInst } from './Actor';
 import { GridMap } from './GridMap';
 
 /** 场域减速区域（诸葛亮八卦阵） */
@@ -36,6 +36,8 @@ export class BattleModel {
     readonly mowers: IMower[] = [];
     /** 待视图消费的表现事件 */
     readonly effects: IBattleEffect[] = [];
+    /** 战斗特效生成队列（逻辑层推送，BattleFxView 每帧消费并实例化预制体 + 缓动播放） */
+    readonly battleFx: IBattleFx[] = [];
     /** 卡片冷却剩余时间 */
     readonly cooldowns: Map<string, number> = new Map();
     /** 运行时波次分组 */
@@ -107,7 +109,8 @@ export class BattleModel {
 
     constructor(level: ILevelConfig, deck?: string[]) {
         this.level = level;
-        this.deck = deck != null && deck.length > 0 ? deck.slice() : level.units.slice();
+        // deck 为 undefined 时回退关卡默认卡组；显式传入空数组（如首次引导关）则保持空，由剧情授予填充
+        this.deck = deck != null ? deck.slice() : level.units.slice();
         this.gameplay = TableGameplay.get();
         this.grid = new GridMap(this.gameplay.rows, this.gameplay.cols);
         this.waves = TableWaves.getByLevel(level.waves);
@@ -162,6 +165,10 @@ export class BattleModel {
     /** 推送表现事件 */
     addEffect(effect: IBattleEffect): void {
         this.effects.push(effect);
+    }
+
+    addBattleFx(fx: IBattleFx): void {
+        this.battleFx.push(fx);
     }
 
     findUnit(uid: number): IUnitInst | null {

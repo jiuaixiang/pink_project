@@ -84,10 +84,7 @@ export class ResultViewComp extends GameComponent {
         }
 
         // 按钮
-        ViewKit.text(root, 'panel/btn_retry/label', ViewKit.lang('result_retry'));
-        ViewKit.text(root, 'panel/btn_next/label', ViewKit.lang('result_next'));
-        ViewKit.text(root, 'panel/btn_home/label', ViewKit.lang('result_home'));
-
+                        
         const nextLevel = TableLevels.getNext(summary.levelId);
         const canNext = win && (summary.unlocked > 0 || (nextLevel != null && nextLevel.id <= summary.levelId + 1));
         ViewKit.visible(root, 'panel/btn_next', canNext);

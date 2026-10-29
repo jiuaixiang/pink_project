@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "./temp/declarations/cc",
+      "./temp/declarations/cc.custom-macro",
+      "./temp/declarations/jsb",
+      "./temp/declarations/cc.env"
+    ],
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": [
+    "assets/script/**/*.ts",
+    "temp/declarations/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "library",
+    "local",
+    "build",
+    "profiles",
+    "temp/programming"
+  ]
+}

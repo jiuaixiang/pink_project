@@ -108,6 +108,8 @@ export interface IProjectileInst {
     hitUids: number[];
     /** 是否暴击（飘字用红色） */
     crit: boolean;
+    /** 敌方弹道（仅表现，伤害已即时结算） */
+    hostile?: boolean;
     alive: boolean;
 }
 
@@ -138,7 +140,7 @@ export interface IMower {
 }
 
 /** 战斗表现事件（由视图层消费，逻辑层不直接操作节点） */
-export type BattleEffectKind = 'damage' | 'explosion' | 'mower' | 'bigwave' | 'breach' | 'shoot' | 'food' | 'gate' | 'shout' | 'die';
+export type BattleEffectKind = 'damage' | 'explosion' | 'mower' | 'bigwave' | 'breach' | 'shoot' | 'food' | 'gate' | 'shout' | 'die' | 'skill' | 'shake';
 
 export interface IBattleEffect {
     kind: BattleEffectKind;
@@ -150,6 +152,70 @@ export interface IBattleEffect {
     radius?: number;
     /** 颜色（伤害飘字 / 爆炸表现） */
     color?: string;
+    /** 文案（技能名播报 / 增益飘字） */
+    text?: string;
+    /** 施法者名（技能播报副标题） */
+    who?: string;
+    /** 技能名（skill 事件） */
+    name?: string;
+    /** 屏震幅度（shake 事件） */
+    amp?: number;
+}
+
+/** 程序化战斗特效（由 BattleFxView 用 Graphics 每帧绘制，逻辑层只负责生成） */
+export type BattleFxKind =
+    | 'impact' | 'muzzle' | 'shard' | 'burst' | 'sweep' | 'wave'
+    | 'cast' | 'castaura' | 'shockwave' | 'line' | 'arc' | 'die' | 'fire' | 'slash' | 'trail'
+    | 'bagua' | 'shout' | 'graincart' | 'bowdraw';
+
+export interface IBattleFx {
+    kind: BattleFxKind;
+    /** 横向位置（格） */
+    x: number;
+    /** 纵向位置（行单位，0~rows） */
+    y: number;
+    color: string;
+    /** 剩余寿命（秒） */
+    life: number;
+    /** 总寿命（秒） */
+    max: number;
+    /** 半径（格，圆形表现） */
+    r?: number;
+    /** 椭圆半径（格） */
+    rx?: number;
+    ry?: number;
+    /** 朝向（弧度） */
+    ang?: number;
+    /** 终点（格，cast/wave/trail 用） */
+    x2?: number;
+    y2?: number;
+    /** 弧角跨度（弧度，sweep 用） */
+    span?: number;
+    /** 行进距离（格，shockwave 用） */
+    travel?: number;
+    /** 半宽（格，line 用） */
+    w?: number;
+    /** 是否暴击（impact 更亮更大） */
+    crit?: boolean;
+    /** 碎片初速（格/秒） */
+    vx?: number;
+    vy?: number;
+    /** 碎片自转（弧度/秒） */
+    vrot?: number;
+    rot?: number;
+    /** 碎片边长（像素） */
+    size?: number;
+    round?: boolean;
+    /** 碎片重力（格/秒²） */
+    grav?: number;
+    /** 技能名（shout / 播报用） */
+    name?: string;
+    /** 施法者名 */
+    who?: string;
+    /** 屏震幅度 */
+    amp?: number;
+    /** 方向标记（1 右 / -1 左，缺省 1） */
+    dir?: number;
 }
 
 /** 波次运行时分组 */

@@ -13,12 +13,7 @@ export class HelpViewComp extends GameComponent {
     protected onLoad(): void {
         const root = this.node;
 
-        ViewKit.text(root, 'panel/title', ViewKit.lang('help_title'));
-        ViewKit.text(root, 'panel/goal', ViewKit.lang('help_goal'));
-        ViewKit.text(root, 'panel/controls', ViewKit.lang('help_controls'));
-        ViewKit.text(root, 'panel/terms', ViewKit.lang('help_terms'));
-        ViewKit.text(root, 'panel/btn_close/label', ViewKit.lang('help_close'));
-
+                                        
         ViewKit.click(ViewKit.get(root, 'panel/btn_close'), () => this.close());
     }
 

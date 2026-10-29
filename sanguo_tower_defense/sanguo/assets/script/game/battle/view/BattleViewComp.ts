@@ -1,5 +1,5 @@
 import type { EventKeyboard, EventTouch } from 'cc';
-import { _decorator, EventMouse, Input, Label, Node, Prefab, Sprite, UIOpacity, UITransform, Vec3, input, instantiate, tween } from 'cc';
+import { _decorator, EventMouse, Graphics, Input, Label, Node, Prefab, Sprite, UIOpacity, UITransform, Vec3, input, instantiate, tween } from 'cc';
 import { GameDebugConfig } from '../../common/config/GameDebugConfig';
 import { oops } from 'db://oops-framework/core/Oops';
 import { GameComponent } from 'db://oops-framework/module/common/GameComponent';
@@ -16,6 +16,11 @@ import { Combat } from '../logic/Combat';
 import { DeploySystem, DeployResult } from '../logic/DeploySystem';
 import { EconomySystem } from '../logic/EconomySystem';
 import { WaveSystem } from '../logic/WaveSystem';
+import { BattleFxView } from './BattleFxView';
+import { ProjectilePainter } from './ProjectilePainter';
+import { TerrainPainter } from './TerrainPainter';
+import { UnitCardPainter } from './UnitCardPainter';
+import { WallPainter } from './WallPainter';
 
 const { ccclass } = _decorator;
 
@@ -58,6 +63,7 @@ export class BattleViewComp extends GameComponent {
 
     private board: Node | null = null;
     private actorsLayer: Node | null = null;
+    private battleFxView: BattleFxView | null = null;
     private inputNode: Node | null = null;
     private cardsLayer: Node | null = null;
 
@@ -125,7 +131,7 @@ export class BattleViewComp extends GameComponent {
         this.layoutBoard();
 
         if (GameDebugConfig.enabled) {
-            input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+            input.on(Input.EventType.KEY_DOWN, this.onDebugKeyDown, this);
             this.bindDebugPanel();
         }
         else if (this.debugPanel != null) {
@@ -157,7 +163,7 @@ export class BattleViewComp extends GameComponent {
 
     /** 关闭前调用，清空引用与对象池 */
     teardown(): void {
-        if (GameDebugConfig.enabled) input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        if (GameDebugConfig.enabled) input.off(Input.EventType.KEY_DOWN, this.onDebugKeyDown, this);
         this.unscheduleAllCallbacks();
 
         this.unitViews.clear();
@@ -170,7 +176,7 @@ export class BattleViewComp extends GameComponent {
     }
 
     protected onDestroy(): void {
-        if (GameDebugConfig.enabled) input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        if (GameDebugConfig.enabled) input.off(Input.EventType.KEY_DOWN, this.onDebugKeyDown, this);
         super.onDestroy();
     }
 
@@ -186,6 +192,8 @@ export class BattleViewComp extends GameComponent {
         this.syncProjectiles(model);
         this.syncDrops(model);
         this.drainEffects(model);
+        this.battleFxView?.sync(model, dt);
+
         this.refreshHud(false);
         this.refreshCards(model);
         this.checkFinish(battle, model);
@@ -227,15 +235,8 @@ export class BattleViewComp extends GameComponent {
         this.guideText = ViewKit.label(root, 'guide/text');
         this.debugPanel = ViewKit.get(root, 'debug');
 
-        ViewKit.text(root, 'topbar/gate_label', ViewKit.lang('battle_gate'));
-        ViewKit.text(root, 'btn_mute/label', ViewKit.lang('battle_mute'));
-        ViewKit.text(root, 'btn_help/label', ViewKit.lang('battle_help'));
-        ViewKit.text(root, 'topbar/btn_strat/label', ViewKit.lang('battle_strat'));
-        ViewKit.text(root, 'btn_pause/label', ViewKit.lang('battle_pause'));
-        ViewKit.text(root, 'btn_speed/label', `×${this.battle == null ? 1 : this.battle.speed}`);
-        ViewKit.text(root, 'btn_retreat/label', ViewKit.lang('battle_retreat'));
-        ViewKit.text(root, 'btn_cancel/label', ViewKit.lang('battle_cancel'));
-
+                                                ViewKit.text(root, 'btn_speed/label', `×${this.battle == null ? 1 : this.battle.speed}`);
+                
         this.cells.length = 0;
         const field = ViewKit.get(root, 'board/field');
         if (field != null) {
@@ -252,6 +253,9 @@ export class BattleViewComp extends GameComponent {
                 }
             }
         }
+
+        // 战斗特效层（子弹 / 命中 / 技能特效由 BattleFxView 用预制体 + 缓动生成）
+        this.battleFxView = this.node.addComponent(BattleFxView);
     }
 
     private bindButtons(): void {
@@ -303,11 +307,19 @@ export class BattleViewComp extends GameComponent {
     private applyLevelVisuals(model: BattleModel): void {
         if (this.fogNode != null) this.fogNode.active = model.level.fog === true;
 
+        const terrain = model.level.terrain;
         for (const cell of this.cells) {
             if (!model.grid.isBlocked(cell.row, cell.col)) continue;
-            if (cell.bg != null) cell.bg.color = ViewKit.color('#0F0B08');
+            if (cell.bg != null) {
+                const mountain = terrain?.mountain?.indexOf(cell.row) >= 0;
+                const river = terrain?.river?.indexOf(cell.row) >= 0;
+                cell.bg.color = ViewKit.color(mountain ? '#4A3B2E' : river ? '#1E3A4A' : '#0F0B08');
+            }
             if (cell.hl != null) cell.hl.active = false;
         }
+
+        // 雪顶高山 / 河流纹样（演员层底部）
+        TerrainPainter.paint(this.actorsLayer, terrain, model.grid.cols);
 
         this.tintWall(model);
     }
@@ -326,6 +338,9 @@ export class BattleViewComp extends GameComponent {
         ViewKit.visible(this.board, 'wall_crack_2', ratio <= 0.4);
         ViewKit.visible(this.board, 'wall_crack_3', ratio <= 0.2);
         ViewKit.visible(this.board, 'wall_fire', ratio <= 0.2);
+
+        // 砖墙 / 垛口 / 城门 / 裂纹（按损伤分档重绘）
+        WallPainter.paintWall(ViewKit.get(this.board, 'wall'), 1 - ratio);
     }
 
     /** 城墙受击晃动（只位移预制体节点） */
@@ -338,6 +353,31 @@ export class BattleViewComp extends GameComponent {
             .to(0.05, { position: new Vec3(x - 5, wall.position.y, 0) })
             .to(0.04, { position: new Vec3(x, wall.position.y, 0) })
             .start();
+    }
+
+    /** 分级屏震（对整个战场做短促位移；重叠时忽略，避免抖动累积） */
+    private shakeActive = false;
+
+    private screenShake(amp: number): void {
+        const board = this.board;
+        if (board == null || !board.isValid || this.shakeActive) return;
+        const strength = Math.max(1, Math.min(14, amp));
+        this.shakeActive = true;
+        const bx = board.position.x;
+        const by = board.position.y;
+        tween(board)
+            .to(0.04, { position: new Vec3(bx + strength, by + strength * 0.4, 0) })
+            .to(0.05, { position: new Vec3(bx - strength * 0.8, by - strength * 0.3, 0) })
+            .to(0.04, { position: new Vec3(bx, by, 0) })
+            .call(() => { this.shakeActive = false; })
+            .start();
+    }
+
+    /** 技能名播报：施法者上方弹出「天赋 · 技能名」 */
+    private announceSkill(effect: { name?: string; color?: string }, x: number, y: number): void {
+        const name = effect.name ?? '';
+        if (name === '') return;
+        this.spawnFloat(x, y - 42, `天赋 · ${name}`, effect.color ?? '#F4D98A');
     }
 
     /** 出手 / 受击的缩放反馈（仅对已有演员节点做 tween） */
@@ -355,7 +395,9 @@ export class BattleViewComp extends GameComponent {
 
         for (let row = 0; row < 5; row++) {
             const node = ViewKit.get(this.board, `mowers/mower_${row}`);
-            if (node != null) node.active = false;
+            if (node == null) continue;
+            node.active = false;
+            WallPainter.paintLog(node);
         }
         for (const mower of model.mowers) {
             const node = ViewKit.get(this.board, `mowers/mower_${mower.row}`);
@@ -391,6 +433,9 @@ export class BattleViewComp extends GameComponent {
         if (!this.node.isValid) return;
         this.buildCards();
         this.buildWaveFlags();
+
+        // 战斗特效层需要子弹/爆发预制体，资源就绪后初始化
+        this.battleFxView?.init(this.prefabs, this.actorsLayer);
     }
 
     /** 生成波次旗标（大波红旗） */
@@ -591,9 +636,22 @@ export class BattleViewComp extends GameComponent {
         if (this.selectedUnit === '') return;
 
         const unitId = this.selectedUnit;
-        const result = DeploySystem.deploy(model, unitId, cell.row, cell.col);
-        if (result !== DeployResult.Ok) {
-            oops.gui.toast(ViewKit.lang(this.deployFailKey(result)));
+        // deploy 返回部署出的单位实例，失败返回 null（不要与 DeployResult 枚举比较）
+        const unit = DeploySystem.deploy(model, unitId, cell.row, cell.col);
+        if (unit == null) {
+            const reason = DeploySystem.check(model, unitId, cell.row, cell.col);
+            if (reason === DeployResult.NoFood) {
+                ViewKit.setText(this.hintLabel, ViewKit.lang('battle_not_enough_food'));
+                this.scheduleOnce(() => { if (this.node.isValid) this.refreshHint(); }, 1.2);
+            }
+            else if (reason === DeployResult.Cooling) {
+                ViewKit.setText(this.hintLabel, ViewKit.lang('battle_cooling'));
+                this.scheduleOnce(() => { if (this.node.isValid) this.refreshHint(); }, 1.2);
+            }
+            else {
+                // 禁放格（InvalidCell）已用常亮高亮标出，点击不打扰
+                this.refreshHint();
+            }
             return;
         }
 
@@ -602,12 +660,6 @@ export class BattleViewComp extends GameComponent {
         this.selectedUnit = '';
         this.refreshHint();
         this.updateHoverCell(-1, -1);
-    }
-
-    private deployFailKey(result: DeployResult): string {
-        if (result === DeployResult.NoFood) return 'battle_not_enough_food';
-        if (result === DeployResult.Cooling) return 'battle_cooling';
-        return 'battle_hint_invalid';
     }
 
     private onPlanted(unitId: string): void {
@@ -652,15 +704,35 @@ export class BattleViewComp extends GameComponent {
     }
 
     private updateHoverCell(row: number, col: number): void {
-        if (row === this.hoverRow && col === this.hoverCol) return;
         this.hoverRow = row;
         this.hoverCol = col;
+        this.applyCellHighlight();
+    }
 
+    /**
+     * 格子高亮：
+     * - 未选卡：仅悬停格微亮（提示可点击区域）
+     * - 选中卡：所有可部署格常亮（淡金），悬停格高亮金——禁放行不再需要玩家试错
+     */
+    private applyCellHighlight(): void {
         const model = this.model;
+        const placing = this.selectedUnit !== '' && !this.retreatMode;
         for (const cell of this.cells) {
             if (cell.hl == null) continue;
             const blocked = model != null && model.grid.isBlocked(cell.row, cell.col);
-            cell.hl.active = !blocked && cell.row === row && cell.col === col;
+            const hover = cell.row === this.hoverRow && cell.col === this.hoverCol;
+
+            if (placing && model != null) {
+                const deployable = !blocked && model.grid.isFree(cell.row, cell.col);
+                cell.hl.active = deployable;
+                const hlSprite = cell.hl.getComponent(Sprite);
+                if (hlSprite != null) ViewKit.tint(hlSprite, hover ? '#FFE9A8' : '#C9AE6A');
+            }
+            else {
+                cell.hl.active = !blocked && hover;
+                const hlSprite = cell.hl.getComponent(Sprite);
+                if (hlSprite != null) ViewKit.tint(hlSprite, '#FFFFFF');
+            }
         }
     }
 
@@ -702,6 +774,8 @@ export class BattleViewComp extends GameComponent {
         if (this.retreatLabel != null) {
             this.retreatLabel.color = ViewKit.color(this.retreatMode ? '#D9A441' : '#F2E6D0');
         }
+
+        this.applyCellHighlight();
     }
     //#endregion
 
@@ -815,6 +889,11 @@ export class BattleViewComp extends GameComponent {
             ViewKit.tint(chip, unit.hitFlash > 0 ? '#FFFFFF' : unit.cfg.color, 240);
             ViewKit.text(node, 'tag', unit.cfg.tag);
 
+            // 程序化卡片装饰（渐变 / 高光 / 描边）
+            const unitChipNode = node.getChildByName('chip');
+            const unitCardSize = unitChipNode?.getComponent(UITransform)?.contentSize.width ?? 56;
+            UnitCardPainter.paint(node, unit.cfg.color, unitCardSize, {});
+
             const hpRatio = unit.hp / unit.maxHp;
             ViewKit.visible(node, 'hp', hpRatio < 0.999);
             if (hpRatio < 0.999) ViewKit.setBar(node, 'hp/fill', hpRatio);
@@ -822,7 +901,7 @@ export class BattleViewComp extends GameComponent {
 
         this.unitViews.forEach((node, uid) => {
             if (this.seen.has(uid)) return;
-            this.release('unit', node);
+            this.recycleActor('unit', node);
             this.unitViews.delete(uid);
         });
     }
@@ -864,6 +943,14 @@ export class BattleViewComp extends GameComponent {
             ViewKit.tint(chip, enemy.hitFlash > 0 ? '#FFFFFF' : (slowed ? '#7FB4D8' : enemy.cfg.color), 245);
             ViewKit.text(node, 'tag', enemy.cfg.tag);
 
+            // 整卡状态表现（霜冻 / 眩晕 / 中毒）
+            const enemyChipNode = node.getChildByName('chip');
+            const enemyCardSize = enemyChipNode?.getComponent(UITransform)?.contentSize.width ?? 52;
+            UnitCardPainter.paint(node, enemy.cfg.color, enemyCardSize, {
+                slow: slowed,
+                stun: enemy.stunTimer > 0,
+            });
+
             ViewKit.setBar(node, 'hp/fill', enemy.hp / enemy.maxHp);
             const hasArmor = enemy.maxArmor > 0;
             ViewKit.visible(node, 'hp/armor', hasArmor && enemy.armor > 0);
@@ -872,7 +959,7 @@ export class BattleViewComp extends GameComponent {
 
         this.enemyViews.forEach((node, uid) => {
             if (this.seen.has(uid)) return;
-            this.release('enemy', node);
+            this.recycleActor('enemy', node);
             this.enemyViews.delete(uid);
         });
     }
@@ -881,39 +968,29 @@ export class BattleViewComp extends GameComponent {
         const layer = this.actorsLayer;
         if (layer == null) return;
 
-        this.seen.clear();
-        for (const p of model.projectiles) {
-            if (!p.alive) continue;
-            this.seen.add(p.uid);
+        // 弹道统一由 Graphics 矢量层绘制（arrow / knife / boomerang / stone 真实形态）
+        this.ensureProjectileGraphics();
+        const g = this.projectileG;
+        if (g == null) return;
+        if (g.node.parent != null) g.node.setSiblingIndex(g.node.parent.children.length - 1);
+        ProjectilePainter.draw(g, model, (v) => this.px(v), (v) => this.py(v));
+    }
 
-            let node = this.bulletViews.get(p.uid);
-            if (node == null) {
-                const created = this.acquire('bullet');
-                if (created == null) continue;
-                node = created;
-                this.bulletViews.set(p.uid, node);
-            }
+    /** 弹道矢量层（位于演员层之上） */
+    private projectileG: Graphics | null = null;
 
-            // 抛射表现：用纵向弧线抬高，命中判定的纵向仍以行为准
-            let y = p.row + 0.5;
-            if (p.duration > 0) {
-                const lift = Math.sin(Math.PI * Math.min(1, p.progress)) * 0.9;
-                y -= lift;
-            }
-            node.active = true;
-            node.setPosition(new Vec3(this.px(p.x), this.py(y), 0));
-
-            const dot = node.getChildByName('dot')?.getComponent(Sprite) ?? null;
-            ViewKit.tint(dot, p.cfg.color);
-            const width = p.cfg.width ?? 5;
-            ViewKit.resize(node.getChildByName('dot'), width * 2, width);
-        }
-
-        this.bulletViews.forEach((node, uid) => {
-            if (this.seen.has(uid)) return;
-            this.release('bullet', node);
-            this.bulletViews.delete(uid);
-        });
+    private ensureProjectileGraphics(): void {
+        const layer = this.actorsLayer;
+        if (layer == null) return;
+        if (this.projectileG != null && this.projectileG.node.isValid) return;
+        const node = new Node('proj_art');
+        node.layer = layer.layer;
+        node.parent = layer;
+        node.setPosition(0, 0, 0);
+        const ui = node.addComponent(UITransform);
+        ui.setContentSize(BOARD_W, BOARD_H);
+        node.addComponent(Graphics);
+        this.projectileG = node.getComponent(Graphics);
     }
 
     private syncDrops(model: BattleModel): void {
@@ -950,7 +1027,7 @@ export class BattleViewComp extends GameComponent {
 
         this.dropViews.forEach((node, uid) => {
             if (this.seen.has(uid)) return;
-            this.release('food', node);
+            this.recycleActor('food', node);
             this.dropViews.delete(uid);
         });
     }
@@ -973,7 +1050,7 @@ export class BattleViewComp extends GameComponent {
         return node;
     }
 
-    private release(kind: ActorKind, node: Node): void {
+    private recycleActor(kind: ActorKind, node: Node): void {
         if (node == null || !node.isValid) return;
         node.active = false;
         node.removeFromParent();
@@ -1005,7 +1082,7 @@ export class BattleViewComp extends GameComponent {
                     this.playThrottled('hit', AudioPath.Hit, 80);
                     break;
                 case 'food':
-                    this.spawnFloat(x, y + 20, `+${effect.value ?? 0}`, '#D9A441');
+                    this.spawnFloat(x, y + 20, `粮草+${effect.value ?? 0}`, '#D9A441');
                     break;
                 case 'explosion':
                     this.spawnBurst(x, y, (effect.radius ?? 1) * CELL_W);
@@ -1030,6 +1107,15 @@ export class BattleViewComp extends GameComponent {
                     break;
                 case 'die':
                     this.playThrottled('die', AudioPath.Die, 90);
+                    break;
+                case 'skill':
+                    this.announceSkill(effect, x, y);
+                    break;
+                case 'shout':
+                    this.screenShake(3);
+                    break;
+                case 'shake':
+                    this.screenShake(effect.amp ?? 5);
                     break;
                 default:
                     break;
@@ -1190,28 +1276,36 @@ export class BattleViewComp extends GameComponent {
         this.showGuide(key);
     }
 
-    /** 授将：加入卡组、重建卡槽、播剧情并推进引导步 */
+    /** 授将：播剧情，剧情结束后接「获得武将」演出；武将真正加入卡组发生在演出结束时 */
     private grantGuideUnit(unitId: string, storyId: string, nextStep: number, key: string): void {
         const model = this.model;
         if (model == null) return;
 
-        model.grantUnit(unitId);
-        this.buildCards();
-        this.setGuideStep(nextStep, key);
-
         this.battle?.pause();
-        // 授将剧情结束接「获得武将」演出
         PopupState.openStory(storyId, () => {
             if (!this.node.isValid) return;
-            this.refreshHint();
-            this.playGetHero(unitId);
+            // 获得演出结束回调里再把武将加入卡槽，并推进引导步
+            this.playGetHero(unitId, () => this.setGuideStep(nextStep, key));
         });
     }
 
-    /** 获得武将演出（暂停战斗） */
-    private playGetHero(unitId: string): void {
+    /**
+     * 获得武将演出（暂停战斗）。演出关闭后才把武将加入卡组、重建卡槽，
+     * 保证「左侧选将池在获得武将前为空、获得后才显示」。
+     */
+    private playGetHero(unitId: string, onObtained?: () => void): void {
         this.battle?.pause();
-        PopupState.openGetHero(unitId);
+        PopupState.openGetHero(unitId, () => {
+            if (!this.node.isValid) return;
+            const model = this.model;
+            if (model != null) {
+                model.grantUnit(unitId);
+                this.buildCards();
+            }
+            PlayerModel.inst.obtainUnit(unitId);
+            this.refreshHint();
+            onObtained?.();
+        });
     }
 
     private updateGuide(): void {
@@ -1302,7 +1396,7 @@ export class BattleViewComp extends GameComponent {
         });
     }
 
-    private onKeyDown(event: EventKeyboard): void {
+    private onDebugKeyDown(event: EventKeyboard): void {
         const key = event.keyCode;
         // 68 = D，切换调试面板
         if (key === 68 && this.debugPanel != null) {

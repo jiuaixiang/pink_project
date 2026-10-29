@@ -104,6 +104,22 @@ export class PlayerModel {
         return this.save.bag;
     }
 
+    /** 已获得的武将 / 器械花名册（引导授予、选将、通关均会收入） */
+    get obtainedUnits(): string[] {
+        if (!Array.isArray(this.save.units)) this.save.units = [];
+        return this.save.units;
+    }
+
+    /** 记录一名武将 / 器械为已获得（持久化） */
+    obtainUnit(unitId: string): void {
+        if (TableUnits.get(unitId) == null) return;
+        const list = this.obtainedUnits;
+        if (list.indexOf(unitId) >= 0) return;
+        list.push(unitId);
+        SaveService.save();
+        oops.message.dispatchEvent(GameEvent.SaveChanged);
+    }
+
     /** 某武将的穿戴表 */
     wearingOf(unitId: string): Record<string, string> {
         if (this.save.wearing == null) this.save.wearing = {};
@@ -240,6 +256,10 @@ export class PlayerModel {
                     const nextLevel = TableLevels.getNext(level.id);
                     if (nextLevel != null) this.save.unlocked = Math.max(this.save.unlocked, nextLevel.id);
                 }
+                // 通关后将本关可招募武将收入花名册（解锁后续关卡选将）
+                for (const uid of level.units) {
+                    if (this.obtainedUnits.indexOf(uid) < 0) this.obtainedUnits.push(uid);
+                }
             }
         }
 
@@ -255,9 +275,12 @@ export class PlayerModel {
         oops.message.dispatchEvent(GameEvent.SaveChanged);
     }
 
-    /** 武将是否已收录（出现在任意已通关关卡的可招募列表） */
+    /** 武将是否已收录（已获得花名册优先，兼容旧存档/图鉴按关卡推导） */
     isUnitUnlocked(unitId: string): boolean {
         if (TableUnits.get(unitId) == null) return false;
+        // 已通过引导 / 选将 / 通关实际获得的武将优先判定
+        if (this.obtainedUnits.indexOf(unitId) >= 0) return true;
+        // 兼容旧存档与图鉴：出现在已通关关卡或首关可招募列表的也算收录
         for (const level of TableLevels.getSorted()) {
             if (level.units.indexOf(unitId) < 0) continue;
             if (this.isCleared(level.id) || level.id === 1) return true;

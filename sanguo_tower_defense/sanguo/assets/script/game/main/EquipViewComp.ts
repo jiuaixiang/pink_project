@@ -56,10 +56,7 @@ export class EquipViewComp extends GameComponent {
 
     private bindStatic(): void {
         const root = this.node;
-        ViewKit.text(root, 'title', ViewKit.lang('equip_title'));
-        ViewKit.text(root, 'btn_back/label', ViewKit.lang('select_back'));
-        ViewKit.text(root, 'panel/hint', ViewKit.lang('equip_hint'));
-
+                        
         ViewKit.click(ViewKit.get(root, 'btn_back'), () => AppNav.backToMain());
 
         this.slots = [
@@ -142,7 +139,6 @@ export class EquipViewComp extends GameComponent {
             const equip = equipId != null ? TableEquips.get(equipId) : null;
             const path = `panel/slot_${view.slot}`;
 
-            ViewKit.text(this.node, `${path}/name`, ViewKit.lang(`equip_slot_${view.slot}`));
             ViewKit.text(this.node, `${path}/value`, equip != null ? ViewKit.lang(equip.nameKey) : ViewKit.lang('equip_none'));
 
             const valueLabel = ViewKit.label(this.node, `${path}/value`);
